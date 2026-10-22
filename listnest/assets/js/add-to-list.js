@@ -21,15 +21,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 selectedAttributes[key] = variation.attributes[key];
             });
 
-            button.setAttribute('data-product-id', variation.variation_id);
+            button.setAttribute('data-variation-id', variation.variation_id);
         } else {
-            button.setAttribute('data-product-id', button.dataset.originalProductId);
+            button.removeAttribute('data-variation-id');
         }
 
         button.setAttribute('data-product-attrs', JSON.stringify(selectedAttributes));
     }
-
-    button.dataset.originalProductId = button.dataset.productId;
 
     document.addEventListener('click', function(e) {
         let btn = e.target.closest('.listnest-add-button');
@@ -42,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const listnestType  = btn.dataset.listnestType;
         const productId = parseInt(btn.dataset.productId) || 0;
+        const variationId = parseInt(btn.dataset.variationId) || 0;
         const productAttrs = btn.dataset.productAttrs ? JSON.parse(btn.dataset.productAttrs) : {};
 
         if (!listnestType || !productId) {
@@ -63,6 +62,9 @@ document.addEventListener('DOMContentLoaded', function() {
         postData.append('security', ListNestConfig.nonce);
         postData.append('list_key', listnestType);
         postData.append('product_id', productId);
+        if (variationId) {
+            postData.append('variation_id', variationId);
+        }
         postData.append('attributes', JSON.stringify(productAttrs));
 
         fetch(ListNestConfig.ajaxurl, {
@@ -71,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
             credentials: 'same-origin',
             body: postData
         })
-            .then(response => response.ok ? response.json() : Promise.reject(`Błąd: ${response.status}`))
+            .then(response => response.json().catch(() => Promise.reject(`Błąd: ${response.status}`)))
             .then(data => {
                 if (data.success) {
                     if (listConfig.option === 'redirect' && listConfig.redirect_url) {

@@ -7,6 +7,10 @@
  *  - $items (tablica)
  *  - $list_key (string)
  */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 ?>
 
 <div class="listnest-list-wrapper">
@@ -15,6 +19,7 @@
     <?php else : ?>
         <form method="post">
             <input type="hidden" name="listnest_list_key" value="<?php echo esc_attr($list_key); ?>" />
+            <?php wp_nonce_field('listnest_update_list', 'listnest_list_nonce'); ?>
 
             <div class="listnest-list">
 
@@ -49,7 +54,7 @@
                                     <?php foreach ($attributes as $attr_k => $attr_v) :
                                         $attribute_name = wc_attribute_label($attr_k);
                                         $term = get_term_by('slug', $attr_v, $attr_k);
-                                        $value = $term ? $term->name : esc_html($attr_v);
+                                        $value = $term ? $term->name : $attr_v;
 
                                         ?>
                                         <div><?php echo esc_html($attribute_name); ?>: <?php echo esc_html($value); ?></div>

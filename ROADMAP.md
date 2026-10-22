@@ -11,13 +11,13 @@ Plugin code lives in `listnest/`. Tick items (`[x]`) as they land.
 - [x] HPOS compatibility declaration; `WC requires at least` / `WC tested up to` headers
 
 ## Stage 2 – Security & storage
-- [ ] Replace `session_start()` / `$_SESSION` with `WC()->session`
-- [ ] Nonces: add-to-list AJAX, list update form
-- [ ] `wp_unslash()` + sanitize on every `$_POST` / `$_GET`; sanitize decoded attributes
-- [ ] `current_user_can( 'edit_post' )` on metabox save; validate option values against a whitelist
-- [ ] `sanitize_key()` on list key before template lookup
-- [ ] Only published, purchasable products can be added
-- [ ] AJAX response no longer leaks full list contents
+- [x] Replace `session_start()` / `$_SESSION` with `WC()->session`
+- [x] Nonces: add-to-list AJAX, list update form
+- [x] `wp_unslash()` + sanitize on every `$_POST` / `$_GET`; sanitize decoded attributes
+- [x] `current_user_can( 'edit_post' )` on metabox save; validate option values against a whitelist
+- [x] `sanitize_key()` on list key before template lookup
+- [x] Only published products (and published variations of that product) can be added; extra rules via `listnest_can_add_product` filter
+- [x] AJAX response no longer leaks full list contents
 
 ## Stage 3 – Front-end features, templates, styling
 - [ ] Automatic "Add to list" button on product page (per-list setting), plus `[listnest_button list="..."]`

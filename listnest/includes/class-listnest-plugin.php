@@ -76,11 +76,15 @@ final class ListNest_Plugin {
         $this->components['cpt'] = new ListNest_CPT();
 
         if ( self::is_woocommerce_active() ) {
-            $this->components['session']    = new ListNest_Session();
-            $this->components['ajax']       = new ListNest_Ajax();
-            $this->components['shortcodes'] = new ListNest_Shortcodes();
+            // List storage (WooCommerce session) is passed to the components
+            // that need it via constructor injection.
+            $storage = new ListNest_Session();
+
+            $this->components['session']    = $storage;
+            $this->components['ajax']       = new ListNest_Ajax( $storage );
+            $this->components['shortcodes'] = new ListNest_Shortcodes( $storage );
             $this->components['popup']      = new ListNest_Popup();
-            $this->components['cf7']        = new ListNest_CF7();
+            $this->components['cf7']        = new ListNest_CF7( $storage );
         } else {
             add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) );
         }

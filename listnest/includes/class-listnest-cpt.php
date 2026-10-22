@@ -170,37 +170,90 @@ class ListNest_CPT {
 
     public function save_list_meta_box($post_id, $post) {
         if (
-            !isset($_POST['listnest_list_meta_box_nonce']) ||
-            !wp_verify_nonce($_POST['listnest_list_meta_box_nonce'], 'listnest_list_meta_box')
+            ! isset($_POST['listnest_list_meta_box_nonce']) ||
+            ! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['listnest_list_meta_box_nonce'])), 'listnest_list_meta_box')
         ) {
             return;
         }
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
             return;
         }
+        if (wp_is_post_revision($post_id)) {
+            return;
+        }
         if ($post->post_type !== 'listnest_list') {
             return;
         }
+        if (! current_user_can('edit_post', $post_id)) {
+            return;
+        }
 
-        $option        = isset($_POST['listnest_list_option']) ? sanitize_text_field($_POST['listnest_list_option']) : '';
-        $redirect_page = isset($_POST['listnest_list_redirect_page']) ? absint($_POST['listnest_list_redirect_page']) : 0;
-        $button_text   = isset($_POST['listnest_list_button_text']) ? sanitize_text_field($_POST['listnest_list_button_text']) : '';
-        $button_page    = isset($_POST['listnest_list_button_page']) ? sanitize_text_field($_POST['listnest_list_button_page']) : '';
+        $allowed_options = array('redirect', 'change_text', 'popup');
+        $option          = isset($_POST['listnest_list_option']) ? sanitize_key(wp_unslash($_POST['listnest_list_option'])) : '';
+        if (! in_array($option, $allowed_options, true)) {
+            $option = '';
+        }
 
-        $popup_title     = isset($_POST['listnest_list_popup_title']) ? sanitize_text_field($_POST['listnest_list_popup_title']) : '';
-        $popup_btn1_text = isset($_POST['listnest_list_popup_btn1_text']) ? sanitize_text_field($_POST['listnest_list_popup_btn1_text']) : '';
-        $popup_btn2_text = isset($_POST['listnest_list_popup_btn2_text']) ? sanitize_text_field($_POST['listnest_list_popup_btn2_text']) : '';
-        $popup_btn2_page  = isset($_POST['listnest_list_popup_btn2_page'])  ? sanitize_text_field($_POST['listnest_list_popup_btn2_page']) : '';
+        $redirect_page = isset($_POST['listnest_list_redirect_page']) ? $this->sanitize_page_id((int) wp_unslash($_POST['listnest_list_redirect_page'])) : 0;
+        $button_text   = isset($_POST['listnest_list_button_text']) ? sanitize_text_field(wp_unslash($_POST['listnest_list_button_text'])) : '';
+        $button_page   = isset($_POST['listnest_list_button_page']) ? $this->sanitize_page_id((int) wp_unslash($_POST['listnest_list_button_page'])) : 0;
+
+        $popup_title     = isset($_POST['listnest_list_popup_title']) ? sanitize_text_field(wp_unslash($_POST['listnest_list_popup_title'])) : '';
+        $popup_btn1_text = isset($_POST['listnest_list_popup_btn1_text']) ? sanitize_text_field(wp_unslash($_POST['listnest_list_popup_btn1_text'])) : '';
+        $popup_btn2_text = isset($_POST['listnest_list_popup_btn2_text']) ? sanitize_text_field(wp_unslash($_POST['listnest_list_popup_btn2_text'])) : '';
+        $popup_btn2_page = isset($_POST['listnest_list_popup_btn2_page']) ? $this->sanitize_page_id((int) wp_unslash($_POST['listnest_list_popup_btn2_page'])) : 0;
 
         update_post_meta($post_id, '_listnest_list_option', $option);
         update_post_meta($post_id, '_listnest_list_redirect_page', $redirect_page);
         update_post_meta($post_id, '_listnest_list_button_text', $button_text);
-        update_post_meta($post_id, '_listnest_list_button_page',  $button_page);
+        update_post_meta($post_id, '_listnest_list_button_page', $button_page);
 
         update_post_meta($post_id, '_listnest_list_popup_title', $popup_title);
         update_post_meta($post_id, '_listnest_list_popup_btn1_text', $popup_btn1_text);
         update_post_meta($post_id, '_listnest_list_popup_btn2_text', $popup_btn2_text);
-        update_post_meta($post_id, '_listnest_list_popup_btn2_page',  $popup_btn2_page);
+        update_post_meta($post_id, '_listnest_list_popup_btn2_page', $popup_btn2_page);
+    }
+
+    /**
+     * Page ID from a wp_dropdown_pages() field; "none" (-1) and invalid values become 0.
+     *
+     * @param int $page_id Raw page ID.
+     * @return int
+     */
+    private function sanitize_page_id($page_id) {
+        $page_id = (int) $page_id;
+        return $page_id > 0 ? $page_id : 0;
+    }
+
+    /**
+     * Returns the ID of the published list with the given key (post slug),
+     * or 0 when there is none.
+     *
+     * @param string $list_key List key.
+     * @return int
+     */
+    public static function get_published_list_id($list_key) {
+        static $cache = array();
+
+        $list_key = sanitize_key($list_key);
+        if ('' === $list_key) {
+            return 0;
+        }
+
+        if (! isset($cache[$list_key])) {
+            $ids = get_posts(array(
+                'post_type'        => 'listnest_list',
+                'post_status'      => 'publish',
+                'name'             => $list_key,
+                'numberposts'      => 1,
+                'fields'           => 'ids',
+                'no_found_rows'    => true,
+                'suppress_filters' => true,
+            ));
+            $cache[$list_key] = ! empty($ids) ? (int) $ids[0] : 0;
+        }
+
+        return $cache[$list_key];
     }
 
     public function enqueue_admin_scripts($hook) {
