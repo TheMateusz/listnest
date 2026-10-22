@@ -75,6 +75,7 @@ final class ListNest_Plugin {
         require_once LISTNEST_PATH . 'includes/class-listnest-inquiries.php';
         require_once LISTNEST_PATH . 'includes/class-listnest-form.php';
         require_once LISTNEST_PATH . 'includes/class-listnest-cf7.php';
+        require_once LISTNEST_PATH . 'includes/class-listnest-settings.php';
     }
 
     private function init_components() {
@@ -83,6 +84,7 @@ final class ListNest_Plugin {
 
         $this->components['cpt']       = new ListNest_CPT();
         $this->components['inquiries'] = $inquiries;
+        $this->components['settings']  = new ListNest_Settings();
 
         if ( self::is_woocommerce_active() ) {
             // List storage (WooCommerce session) is passed to the components

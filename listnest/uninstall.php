@@ -1,10 +1,10 @@
 <?php
 /**
- * Uninstall routine: removes all lists and stored inquiries
- * (listnest_list and listnest_inquiry posts and their meta).
+ * Uninstall routine: removes scheduled jobs and plugin settings.
+ * Lists/inquiries are preserved unless deletion was explicitly enabled.
  *
- * The plugin stores no options. Visitors' list contents live in the
- * WooCommerce session, which expires on its own; the WooCommerce session
+ * Visitors' list contents live in the WooCommerce session, which expires
+ * on its own; the WooCommerce session
  * table is intentionally left untouched. Rate-limit transients of the
  * inquiry form expire on their own.
  *
@@ -22,6 +22,19 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
  */
 function listnest_uninstall_site() {
     global $wpdb;
+
+    wp_clear_scheduled_hook( 'listnest_cleanup_inquiries' );
+    wp_unschedule_hook( 'listnest_release_submission_lock' );
+    $locks = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( 'listnest_submit_lock_' ) . '%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-off uninstall cleanup.
+    foreach ( $locks as $lock ) {
+        delete_option( $lock );
+    }
+    $remove = get_option( 'listnest_remove_data', false );
+    delete_option( 'listnest_remove_data' );
+    delete_option( 'listnest_retention_days' );
+    if ( ! $remove ) {
+        return;
+    }
 
     // The post types are not registered during uninstall, so query the IDs directly.
     $ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-off uninstall query.
