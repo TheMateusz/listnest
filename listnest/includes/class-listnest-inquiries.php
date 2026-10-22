@@ -110,12 +110,12 @@ class ListNest_Inquiries {
      */
     public function create( array $data ) {
         $post_id = wp_insert_post(
-            array(
+            wp_slash( array(
                 'post_type'   => self::POST_TYPE,
                 'post_status' => 'publish',
                 'post_title'  => sprintf(
                     /* translators: 1: customer name, 2: list name */
-                    __( '%1$s – %2$s', 'listnest' ),
+                    __( '%1$s - %2$s', 'listnest' ),
                     $data['name'],
                     ListNest_Mail::list_title( $data['list_key'] )
                 ),
@@ -128,7 +128,7 @@ class ListNest_Inquiries {
                     self::META_PRODUCTS => $data['products'],
                     self::META_CONSENT  => $data['consent'],
                 ),
-            ),
+            ) ),
             true
         );
 
@@ -222,7 +222,7 @@ class ListNest_Inquiries {
         $email   = (string) get_post_meta( $post->ID, self::META_EMAIL, true );
         $subject = sprintf(
             /* translators: %s: list name */
-            __( 'Re: your inquiry – %s', 'listnest' ),
+            __( 'Re: your inquiry - %s', 'listnest' ),
             ListNest_Mail::list_title( (string) get_post_meta( $post->ID, self::META_LIST_KEY, true ) )
         );
         ?>
@@ -287,7 +287,7 @@ class ListNest_Inquiries {
         if ( 'sent' === $status ) {
             esc_html_e( 'Sent', 'listnest' );
         } elseif ( 'failed' === $status ) {
-            echo '<strong style="color:#b32d2e;">' . esc_html__( 'Not sent – check your site\'s email delivery', 'listnest' ) . '</strong>';
+            echo '<strong style="color:#b32d2e;">' . esc_html__( 'Not sent - check your site\'s email delivery', 'listnest' ) . '</strong>';
         } else {
             echo '&mdash;';
         }

@@ -124,7 +124,7 @@ $listnest_field_error = static function ( $field ) use ( $errors, $form_id ) {
             <?php endif; ?>
 
             <p class="listnest-form__actions">
-                <button type="submit" class="button listnest-form__submit<?php echo ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) ? ' wp-element-button' : ''; ?>"><?php esc_html_e( 'Send inquiry', 'listnest' ); ?></button>
+                <button type="submit" class="<?php echo esc_attr( ListNest_Frontend::button_class( 'listnest-form__submit' ) ); ?>"><?php esc_html_e( 'Send inquiry', 'listnest' ); ?></button>
             </p>
         </form>
     <?php endif; ?>

@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * built-in inquiry form.
  *
  * Rows are arrays with at least: name (string), attributes (list of
- * array( label, value )), quantity (int) – i.e. rows from
+ * array( label, value )), quantity (int) - i.e. rows from
  * ListNest_Item::prepare_rows() or stored inquiry snapshots.
  */
 class ListNest_Mail {

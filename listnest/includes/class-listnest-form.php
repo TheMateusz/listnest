@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Built-in inquiry form – an alternative to Contact Form 7.
+ * Built-in inquiry form - an alternative to Contact Form 7.
  *
  * Shown automatically below the list ([listnest] shortcode) when the list's
  * "Inquiry form" setting is "Built-in form", or anywhere with
@@ -90,6 +90,7 @@ class ListNest_Form {
     public function register_hooks() {
         add_shortcode( 'listnest_form', array( $this, 'render_shortcode' ) );
         add_action( 'wp', array( $this, 'handle_submit' ) );
+        add_action( 'listnest_release_submission_lock', array( $this, 'release_submission_lock' ) );
     }
 
     /**
@@ -134,7 +135,7 @@ class ListNest_Form {
      */
     public function is_sent( $list_key ) {
         // Display-only flag set by our own redirect.
-        return isset( $_GET[ self::SENT_ARG ] ) && sanitize_key( wp_unslash( $_GET[ self::SENT_ARG ] ) ) === sanitize_key( $list_key ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        return isset( $_GET[ self::SENT_ARG ] ) && is_string( $_GET[ self::SENT_ARG ] ) && sanitize_key( wp_unslash( $_GET[ self::SENT_ARG ] ) ) === sanitize_key( $list_key ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
     }
 
     /* ------------------------------------------------------------------
@@ -213,7 +214,8 @@ class ListNest_Form {
         $errors       = $is_current ? $this->errors : array();
         $show_form    = ! $sent && ( $has_items || $is_current );
         $consent_text = $this->get_consent_text( $settings );
-        $action_url   = remove_query_arg( array( self::SENT_ARG, 'listnest_list_updated' ) );
+        // The anchor brings the visitor back to the form after a validation error.
+        $action_url   = remove_query_arg( array( self::SENT_ARG, 'listnest_list_updated' ) ) . '#' . $form_id;
         $list_field   = self::LIST_FIELD;
         $nonce_action = self::NONCE_ACTION;
         $nonce_field  = self::NONCE_FIELD;
@@ -225,7 +227,7 @@ class ListNest_Form {
          * @param string $message  Message (plain text).
          * @param string $list_key List key.
          */
-        $success_message = (string) apply_filters( 'listnest_form_success_message', __( 'Thank you! Your inquiry has been sent. We will get back to you as soon as possible.', 'listnest' ), $list_key );
+        $success_message = (string) apply_filters( 'listnest_form_success_message', __( 'Thank you! Your inquiry has been received. We will get back to you as soon as possible.', 'listnest' ), $list_key );
 
         ob_start();
         include $template;
@@ -271,6 +273,11 @@ class ListNest_Form {
         if ( ! isset( $_POST[ self::LIST_FIELD ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified below.
             return;
         }
+        foreach ( array( self::LIST_FIELD, self::NONCE_FIELD, self::HONEYPOT_FIELD, 'listnest_name', 'listnest_email', 'listnest_phone', 'listnest_message', 'listnest_consent' ) as $field ) {
+            if ( isset( $_POST[ $field ] ) && ! is_string( $_POST[ $field ] ) ) {
+                wp_die( esc_html__( 'Please correct the highlighted fields.', 'listnest' ), '', array( 'response' => 400 ) );
+            }
+        }
 
         $list_key = sanitize_key( wp_unslash( $_POST[ self::LIST_FIELD ] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified below.
         $settings = self::get_settings( $list_key );
@@ -308,15 +315,27 @@ class ListNest_Form {
         }
 
         $rows = ListNest_Item::prepare_rows( $items, true );
+        foreach ( $rows as $row ) {
+            if ( ! $row['product'] ) {
+                $this->errors['form'] = __( 'Some products are no longer available. Remove them from your list before sending.', 'listnest' );
+                return;
+            }
+        }
         $data = array(
             'name'     => $this->values['name'],
-            'email'    => $this->values['email'],
+            'email'    => sanitize_email( $this->values['email'] ),
             'phone'    => $this->values['phone'],
             'message'  => $this->values['message'],
             'list_key' => $list_key,
             'products' => $this->snapshot_rows( $rows ),
             'consent'  => $consent_text,
         );
+
+        $lock = $this->acquire_submission_lock( $list_key );
+        if ( ! $lock ) {
+            $this->errors['form'] = __( 'This inquiry is already being processed. Please wait a minute before sending again.', 'listnest' );
+            return;
+        }
 
         /**
          * Filters whether inquiries are stored under Lists → Inquiries.
@@ -332,6 +351,7 @@ class ListNest_Form {
         }
 
         if ( ! $sent && ! $inquiry_id ) {
+            delete_option( $lock );
             $this->errors['form'] = __( 'Your inquiry could not be sent. Please try again later or contact us directly.', 'listnest' );
             return;
         }
@@ -355,6 +375,34 @@ class ListNest_Form {
         $this->redirect_success( $list_key );
     }
 
+    /** Atomically serialize submissions for one visitor/list for one minute. */
+    private function acquire_submission_lock( $list_key ) {
+        $session = WC()->session;
+        if ( ! $session instanceof WC_Session ) {
+            return false;
+        }
+        $key = 'listnest_submit_lock_' . hash( 'sha256', $session->get_customer_id() . '|' . $list_key );
+        $expired = get_option( $key, false );
+        if ( false !== $expired && (int) $expired < time() ) {
+            global $wpdb;
+            // Compare-and-delete: never remove a newer lock acquired by another request.
+            $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", $key, (string) $expired ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic expired-lock removal; cache invalidated below.
+            wp_cache_delete( $key, 'options' );
+        }
+        if ( ! add_option( $key, time() + MINUTE_IN_SECONDS, '', false ) ) {
+            return false;
+        }
+        wp_schedule_single_event( time() + MINUTE_IN_SECONDS + 1, 'listnest_release_submission_lock', array( $key ) );
+        return $key;
+    }
+
+    /** Remove only an expired lock belonging to this plugin. */
+    public function release_submission_lock( $key ) {
+        if ( is_string( $key ) && preg_match( '/^listnest_submit_lock_[a-f0-9]{64}$/', $key ) && (int) get_option( $key, 0 ) < time() ) {
+            delete_option( $key );
+        }
+    }
+
     /**
      * Sanitized submitted values.
      *
@@ -363,7 +411,8 @@ class ListNest_Form {
     private function get_posted_values() {
         // phpcs:disable WordPress.Security.NonceVerification.Missing -- Read before the nonce check only to re-display the form.
         $name    = isset( $_POST['listnest_name'] ) ? sanitize_text_field( wp_unslash( $_POST['listnest_name'] ) ) : '';
-        $email   = isset( $_POST['listnest_email'] ) ? sanitize_email( wp_unslash( $_POST['listnest_email'] ) ) : '';
+        // Kept as typed (re-displayed on errors); validated with is_email() and sanitize_email()d before use.
+        $email   = isset( $_POST['listnest_email'] ) ? sanitize_text_field( wp_unslash( $_POST['listnest_email'] ) ) : '';
         $phone   = isset( $_POST['listnest_phone'] ) ? sanitize_text_field( wp_unslash( $_POST['listnest_phone'] ) ) : '';
         $message = isset( $_POST['listnest_message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['listnest_message'] ) ) : '';
         $consent = ! empty( $_POST['listnest_consent'] );
@@ -459,9 +508,8 @@ class ListNest_Form {
      * @param string $list_key List key.
      */
     private function redirect_success( $list_key ) {
-        $referer = wp_get_referer();
-        $url     = remove_query_arg( array( self::SENT_ARG, 'listnest_list_updated' ), $referer ? $referer : home_url( '/' ) );
-        $url     = add_query_arg( self::SENT_ARG, rawurlencode( $list_key ), $url ) . '#listnest-form-' . $list_key;
+        $url = ListNest_Frontend::get_return_url( array( self::SENT_ARG, 'listnest_list_updated' ) );
+        $url = add_query_arg( self::SENT_ARG, rawurlencode( $list_key ), $url ) . '#listnest-form-' . $list_key;
 
         wp_safe_redirect( $url );
         exit;
@@ -522,7 +570,7 @@ class ListNest_Form {
             'to'      => $data['email'],
             'subject' => $this->clean_header( sprintf(
                 /* translators: %s: site name */
-                __( 'Your inquiry – %s', 'listnest' ),
+                __( 'Your inquiry - %s', 'listnest' ),
                 ListNest_Mail::plain_text( get_bloginfo( 'name' ) )
             ) ),
             'message' => ListNest_Mail::wrap_html( $body ),
