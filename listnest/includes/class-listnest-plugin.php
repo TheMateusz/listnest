@@ -71,23 +71,31 @@ final class ListNest_Plugin {
         require_once LISTNEST_PATH . 'includes/class-listnest-frontend.php';
         require_once LISTNEST_PATH . 'includes/class-listnest-shortcodes.php';
         require_once LISTNEST_PATH . 'includes/class-listnest-popup.php';
+        require_once LISTNEST_PATH . 'includes/class-listnest-mail.php';
+        require_once LISTNEST_PATH . 'includes/class-listnest-inquiries.php';
+        require_once LISTNEST_PATH . 'includes/class-listnest-form.php';
         require_once LISTNEST_PATH . 'includes/class-listnest-cf7.php';
     }
 
     private function init_components() {
-        // Admin side (list post type) is always available.
-        $this->components['cpt'] = new ListNest_CPT();
+        // Admin side (list and inquiry post types) is always available.
+        $inquiries = new ListNest_Inquiries();
+
+        $this->components['cpt']       = new ListNest_CPT();
+        $this->components['inquiries'] = $inquiries;
 
         if ( self::is_woocommerce_active() ) {
             // List storage (WooCommerce session) is passed to the components
             // that need it via constructor injection.
             $storage  = new ListNest_Session();
             $frontend = new ListNest_Frontend();
+            $form     = new ListNest_Form( $storage, $frontend, $inquiries );
 
             $this->components['session']    = $storage;
             $this->components['frontend']   = $frontend;
             $this->components['ajax']       = new ListNest_Ajax( $storage );
-            $this->components['shortcodes'] = new ListNest_Shortcodes( $storage, $frontend );
+            $this->components['form']       = $form;
+            $this->components['shortcodes'] = new ListNest_Shortcodes( $storage, $frontend, $form );
             $this->components['popup']      = new ListNest_Popup( $frontend );
             // Hooks into Contact Form 7 only when CF7 is active (on wpcf7_init).
             $this->components['cf7']        = new ListNest_CF7( $storage, $frontend );

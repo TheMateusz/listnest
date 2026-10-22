@@ -37,8 +37,19 @@ Plugin code lives in `listnest/`. Tick items (`[x]`) as they land.
 - [x] `readme.txt` in WordPress.org format
 - [x] Stale nonce on cached pages: `listnest_refresh_nonce` AJAX action, script refreshes and retries once
 
+## Stage 4b – Built-in inquiry form (no CF7 needed)
+- [x] Per-list "Inquiry form" setting: None / Built-in / Contact Form 7; built-in form shown below the list automatically, plus `[listnest_form list="..."]`
+- [x] Fields: name, email, phone (optional), message, consent checkbox (editable text, links allowed, default links to privacy policy)
+- [x] Settings: recipient(s), subject with `{list}` `{name}` `{site}`, copy to customer
+- [x] HTML mail to the shop with product table, Reply-To = customer; optional customer copy; list cleared; thank-you message (PRG redirect)
+- [x] Inquiries saved under Lists → Inquiries (read-only, mail sent/failed status, reply link); personal data exporter/eraser; privacy policy text
+- [x] Spam/security: nonce, honeypot, per-IP rate limit (hashed IP transient), sanitization, header-injection safe
+- [x] Accessible errors per field (aria-invalid/aria-describedby, role=alert summary); works without JS
+- [x] Mail table shared with CF7 (`ListNest_Mail`); uninstall removes inquiries; readme, pot, pl_PL updated (131/131)
+
 ## Stage 5 – Testing
 - [ ] Local WP + WooCommerce + CF7 (XAMPP), `WP_DEBUG` clean
+- [ ] Built-in form: send (guest + logged-in), validation errors, honeypot, rate limit, customer copy, Inquiries screen, mail failure status, privacy export/erase
 - [ ] Plugin Check (PCP): 0 errors
 - [ ] Storefront + Twenty Twenty-Five, simple + variable products, guest + logged-in, PHP 7.4 & 8.x
 

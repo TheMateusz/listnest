@@ -65,7 +65,7 @@ class ListNest_Frontend {
 
         if ( has_shortcode( $post->post_content, 'listnest_button' ) ) {
             $this->enqueue_script();
-        } elseif ( has_shortcode( $post->post_content, 'listnest' ) ) {
+        } elseif ( has_shortcode( $post->post_content, 'listnest' ) || has_shortcode( $post->post_content, 'listnest_form' ) ) {
             $this->enqueue_style();
         }
     }

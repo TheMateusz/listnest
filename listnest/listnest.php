@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:          ListNest
- * Description:          Let customers collect products into custom lists — quote requests, samples, wishlists — and send them through Contact Form 7.
+ * Description:          Let customers collect products into custom lists — quote requests, samples, wishlists — and send them with the built-in inquiry form or Contact Form 7.
  * Version:              0.1.0
  * Author:               Mateusz Matusiak
  * License:              GPL-2.0-or-later

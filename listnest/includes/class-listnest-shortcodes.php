@@ -29,12 +29,21 @@ class ListNest_Shortcodes {
     private $frontend;
 
     /**
-     * @param ListNest_Session  $storage  List storage.
-     * @param ListNest_Frontend $frontend Front-end component.
+     * Built-in inquiry form (shown below the list when enabled), optional.
+     *
+     * @var ListNest_Form|null
      */
-    public function __construct(ListNest_Session $storage, ListNest_Frontend $frontend) {
+    private $form;
+
+    /**
+     * @param ListNest_Session   $storage  List storage.
+     * @param ListNest_Frontend  $frontend Front-end component.
+     * @param ListNest_Form|null $form     Built-in inquiry form.
+     */
+    public function __construct(ListNest_Session $storage, ListNest_Frontend $frontend, $form = null) {
         $this->storage  = $storage;
         $this->frontend = $frontend;
+        $this->form     = ($form instanceof ListNest_Form) ? $form : null;
     }
 
     /**
@@ -85,7 +94,15 @@ class ListNest_Shortcodes {
         $nonce_field  = self::NONCE_FIELD;
         $updated      = isset($_GET['listnest_list_updated']) && '1' === sanitize_key(wp_unslash($_GET['listnest_list_updated'])); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only flag set by our own redirect.
 
-        return $this->render_template($template_path, compact('list_key', 'items', 'rows', 'max_quantity', 'nonce_action', 'nonce_field', 'updated'));
+        $html = $this->render_template($template_path, compact('list_key', 'items', 'rows', 'max_quantity', 'nonce_action', 'nonce_field', 'updated'));
+
+        if ($this->form && $this->form->is_auto_form($list_key)) {
+            $form_html = $this->form->render($list_key);
+            // Right after sending, the thank-you message goes above the (now empty) list.
+            $html = $this->form->is_sent($list_key) ? $form_html . $html : $html . $form_html;
+        }
+
+        return $html;
     }
 
     /**
@@ -191,7 +208,8 @@ class ListNest_Shortcodes {
         $this->storage->set_list($list_key, $items);
 
         $referer = wp_get_referer();
-        wp_safe_redirect(add_query_arg('listnest_list_updated', '1', $referer ? $referer : home_url('/')));
+        $referer = remove_query_arg('listnest_sent', $referer ? $referer : home_url('/'));
+        wp_safe_redirect(add_query_arg('listnest_list_updated', '1', $referer));
         exit;
     }
 }

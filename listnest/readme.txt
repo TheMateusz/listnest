@@ -8,11 +8,11 @@ Stable tag: 0.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Let customers collect products into custom lists for quote requests, samples or wishlists, and send them to you through Contact Form 7.
+Let customers collect products into lists for quote requests, samples or wishlists, and send them with a built-in form or Contact Form 7.
 
 == Description ==
 
-ListNest adds "Add to list" buttons to your WooCommerce store. Customers collect products (including variations, with their selected attributes and quantities) into lists that you define, review them on a list page, and send them to you with a Contact Form 7 form. No checkout, no prices, no account required.
+ListNest adds "Add to list" buttons to your WooCommerce store. Customers collect products (including variations, with their selected attributes and quantities) into lists that you define, review them on a list page, and send them to you with the built-in inquiry form or a Contact Form 7 form. No checkout, no prices, no account required.
 
 You can create as many lists as you need, each with its own button and behaviour.
 
@@ -29,6 +29,9 @@ You can create as many lists as you need, each with its own button and behaviour
 * Works with simple and variable products; the selected variation, attributes and quantity are stored.
 * Three actions after adding a product: redirect to a page, turn the button into a link (e.g. "See list"), or show an accessible confirmation popup.
 * List page with thumbnails, attributes, quantity editing and item removal.
+* Built-in inquiry form (no other plugins needed): name, email, phone, message and a consent checkbox. The shop receives an HTML email with the product table and Reply-To set to the customer; the customer can get a copy.
+* Every inquiry is also saved under *Lists → Inquiries*, so nothing is lost when your site's email delivery fails. Supports the WordPress personal data export and erase tools.
+* Spam protection without CAPTCHA or external services: nonce, honeypot field and a per-IP rate limit.
 * Contact Form 7 integration: a form tag that attaches the list to the form (with a read-only summary) and a mail tag that inserts the list into the email as an HTML table or plain text. The list is cleared after the message has been sent.
 * Theme-independent templates that can be overridden in your theme, and neutral CSS with custom properties.
 * Lists are stored in the WooCommerce customer session: works for guests and logged-in customers.
@@ -39,6 +42,7 @@ You can create as many lists as you need, each with its own button and behaviour
 
 * `[listnest list_key="my-list"]` – displays the list page (products, quantities, update and remove).
 * `[listnest_button list="my-list"]` – displays the "Add to list" button for the current product. Use `product_id="123"` to target a specific product.
+* `[listnest_form list="my-list"]` – displays the built-in inquiry form. Not needed when the list's "Inquiry form" setting is "Built-in form": the form then appears below the list automatically.
 
 **Contact Form 7 tags**
 
@@ -61,22 +65,34 @@ Filters:
 * `listnest_cf7_clear_after_send` – `( bool $clear, string $list_key, WPCF7_ContactForm $form )` – clear the list after the mail has been sent (default true).
 * `listnest_cf7_mail_output` – `( string $output, string $list_key, array $rows, bool $html )` – list inserted by the mail tag.
 * `listnest_cf7_form_summary_html` – `( string $html, string $list_key, array $rows )` – list summary shown inside the form.
+* `listnest_form_mail` – `( array $args, string $type, array $data )` – mail sent by the built-in form (`$type`: `shop` or `customer`; `$args`: `to`, `subject`, `message`, `headers`).
+* `listnest_form_validation_errors` – `( array $errors, array $values )` – validation errors of the built-in form.
+* `listnest_form_consent_text` – `( string $html, array $settings )` – consent checkbox label; return an empty string to remove the checkbox.
+* `listnest_form_success_message` – `( string $message, string $list_key )` – message shown after sending.
+* `listnest_form_rate_limit` – `( array $limit )` – `max` inquiries per IP (default 5, 0 disables) within `window` seconds (default 600).
+* `listnest_form_store_inquiries` – `( bool $store, array $data )` – save inquiries under Lists → Inquiries (default true).
+* `listnest_inquiries_capability` – `( string $capability )` – capability required to view inquiries (default `manage_woocommerce`).
+
+Actions:
+
+* `listnest_inquiry_received` – `( array $data, int $inquiry_id, bool $sent )` – fires after the built-in form has been sent.
 
 JavaScript: a bubbling `listnest:added` event is dispatched on the button after a product has been added (`event.detail`: `listKey`, `productId`, `variationId`, `quantity`, `response`).
 
 **Privacy**
 
-ListNest does not send any data to external services. List contents are kept in the WooCommerce customer session on your own server and are only sent by email when the customer submits your Contact Form 7 form.
+ListNest does not send any data to external services. List contents are kept in the WooCommerce customer session on your own server and are only sent by email when the customer submits the inquiry form. Inquiries sent with the built-in form are stored in your WordPress database (name, email, phone, message, products and the consent text); they can be exported or erased with *Tools → Export / Erase Personal Data*, and ListNest suggests a paragraph for your privacy policy. The rate limit keeps only a hashed IP address in a short-lived transient.
 
 == Installation ==
 
-1. Make sure WooCommerce is installed and active. Install Contact Form 7 if you want customers to send their lists.
+1. Make sure WooCommerce is installed and active.
 2. Upload the `listnest` folder to `/wp-content/plugins/`, or install the plugin through the *Plugins* screen in WordPress.
 3. Activate the plugin through the *Plugins* screen.
 4. Go to *Lists → Add New List*, enter a title and publish. The list slug (e.g. `samples`) is the list key.
 5. In the list options, enable "Show button on product pages" or use `[listnest_button list="samples"]`, and choose what happens after a product is added.
 6. Create a page with `[listnest list_key="samples"]` to display the list.
-7. Optional: add `[listnest_products list:samples]` to a Contact Form 7 form and `[listnest_products]` to its mail body, then place the form on the list page.
+7. Under "Inquiry form", choose "Built-in form" to show a form below the list, and set the recipient address. Received inquiries appear under *Lists → Inquiries*.
+8. Prefer Contact Form 7? Choose "Contact Form 7", add `[listnest_products list:samples]` to a CF7 form and `[listnest_products]` to its mail body, then place the form on the list page.
 
 == Frequently Asked Questions ==
 
@@ -84,13 +100,21 @@ ListNest does not send any data to external services. List contents are kept in 
 
 Yes. The list post type is always available in the admin area, but the buttons, the list page and the Contact Form 7 integration require WooCommerce.
 
+= Do I need Contact Form 7? =
+
+No. Set "Inquiry form" to "Built-in form" in the list options and the form appears below the list. Contact Form 7 is only needed if you prefer to build the form with it.
+
+= I don't receive the inquiry emails. =
+
+Every inquiry sent with the built-in form is saved under *Lists → Inquiries*, and the list shows whether the email to the shop was sent. If emails are not delivered, your server's mail function is probably blocked or marked as spam; install an SMTP plugin and send a test email.
+
 = How do I send a list with Contact Form 7? =
 
 Add the form tag `[listnest_products list:your-list-key]` anywhere in the form. It adds the list to the submission and shows the customer a summary of the products. Then add the mail tag `[listnest_products]` to the *Mail* tab. Enable "Use HTML content type" to receive the list as a table. After the message has been sent, the list is cleared (see the `listnest_cf7_clear_after_send` filter).
 
 = How do I override the templates? =
 
-Copy the file from `wp-content/plugins/listnest/templates/` to `wp-content/themes/your-theme/listnest/` and edit it there. Available templates: `list-table.php`, `add-button.php` and `popup.php`. You can also target a single list with `{list-key}-list-table.php` or `{list-key}-add-button.php`. Child themes are checked before parent themes.
+Copy the file from `wp-content/plugins/listnest/templates/` to `wp-content/themes/your-theme/listnest/` and edit it there. Available templates: `list-table.php`, `add-button.php`, `inquiry-form.php` and `popup.php`. You can also target a single list with `{list-key}-list-table.php`, `{list-key}-add-button.php` or `{list-key}-inquiry-form.php`. Child themes are checked before parent themes.
 
 = The list page or the form shows another visitor's products or an old list. What should I do? =
 
@@ -98,11 +122,11 @@ Lists are personal, so pages that display them must not be served from a full-pa
 
 = Where are the lists stored? Is any data sent elsewhere? =
 
-Lists are stored in the WooCommerce customer session (the same mechanism as the cart), so no account is needed and the data expires together with the session. Nothing is sent to external services; the list only leaves your site as part of the email sent by your Contact Form 7 form.
+Lists are stored in the WooCommerce customer session (the same mechanism as the cart), so no account is needed and the data expires together with the session. Nothing is sent to external services; the list only leaves your site as part of the inquiry email.
 
 = What happens when I uninstall the plugin? =
 
-All lists you created (and their settings) are deleted. Customers' session data expires on its own.
+All lists you created (and their settings) and all stored inquiries are deleted. Customers' session data expires on its own.
 
 == Screenshots ==
 
@@ -110,8 +134,10 @@ All lists you created (and their settings) are deleted. Customers' session data 
 2. "Add to list" button on a variable product page.
 3. Confirmation popup after a product has been added.
 4. List page with thumbnails, attributes and quantities.
-5. Contact Form 7 form with the list summary.
-6. Email with the list as an HTML table.
+5. Built-in inquiry form below the list.
+6. Inquiries saved in the admin area.
+7. Email with the list as an HTML table.
+8. Contact Form 7 form with the list summary.
 
 == Changelog ==
 

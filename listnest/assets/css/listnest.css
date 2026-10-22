@@ -43,6 +43,7 @@
 .listnest a:focus-visible,
 .listnest button:focus-visible,
 .listnest input:focus-visible,
+.listnest textarea:focus-visible,
 .listnest-add-button:focus-visible {
     outline: var(--listnest-focus);
     outline-offset: 2px;
@@ -112,9 +113,25 @@ form.cart .listnest-button-wrap {
 .listnest-notice {
     margin: 0 0 var(--listnest-gap);
     padding: 0.75em 1em;
-    border-inline-start: 4px solid var(--listnest-success);
+    border-inline-start: 4px solid var(--listnest-border);
     border-radius: var(--listnest-radius);
     background: rgba(128, 128, 128, 0.08);
+}
+
+.listnest-notice--success {
+    border-inline-start-color: var(--listnest-success);
+}
+
+.listnest-notice--error {
+    border-inline-start-color: var(--listnest-error);
+}
+
+.listnest-notice > p {
+    margin: 0;
+}
+
+.listnest-notice > p + p {
+    margin-top: 0.25em;
 }
 
 .listnest-list__table {
@@ -308,6 +325,122 @@ form.cart .listnest-button-wrap {
 .listnest-cf7-summary__empty {
     font-size: 0.875em;
     opacity: var(--listnest-muted-opacity);
+}
+
+/* ------------------------------------------------------------------
+ * Built-in inquiry form ([listnest_form list="..."])
+ * ------------------------------------------------------------------ */
+
+.listnest-form-wrap {
+    margin: calc(var(--listnest-gap) * 2) 0 var(--listnest-gap);
+}
+
+.listnest-form {
+    max-width: 48rem;
+}
+
+.listnest-form__title {
+    margin: 0 0 var(--listnest-gap);
+}
+
+.listnest-form__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    column-gap: var(--listnest-gap);
+}
+
+.listnest-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35em;
+    margin: 0 0 var(--listnest-gap);
+}
+
+.listnest-form__field label {
+    font-weight: 600;
+}
+
+.listnest-form__optional {
+    font-weight: normal;
+    opacity: var(--listnest-muted-opacity);
+}
+
+.listnest-form__required {
+    color: var(--listnest-error);
+}
+
+.listnest-form input[type="text"],
+.listnest-form input[type="email"],
+.listnest-form input[type="tel"],
+.listnest-form textarea {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0.6em 0.75em;
+    border: 1px solid var(--listnest-border);
+    border-radius: var(--listnest-radius);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    line-height: 1.4;
+}
+
+.listnest-form textarea {
+    min-height: 8em;
+    resize: vertical;
+}
+
+.listnest-form input:focus-visible,
+.listnest-form textarea:focus-visible {
+    outline: var(--listnest-focus);
+    outline-offset: 1px;
+}
+
+.listnest-form__field--invalid input,
+.listnest-form__field--invalid textarea {
+    border-color: var(--listnest-error);
+}
+
+.listnest-form__error {
+    color: var(--listnest-error);
+    font-size: 0.875em;
+}
+
+.listnest-form__field--consent {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    column-gap: 0.6em;
+    row-gap: 0.35em;
+}
+
+.listnest-form__field--consent input {
+    width: 1.1em;
+    height: 1.1em;
+    margin: 0.2em 0 0;
+}
+
+.listnest-form__field--consent label {
+    font-weight: normal;
+    font-size: 0.9375em;
+}
+
+.listnest-form__field--consent .listnest-form__error {
+    grid-column: 2;
+}
+
+.listnest-form__actions {
+    margin: 0;
+}
+
+/* Honeypot: hidden from people, visible to naive bots. */
+.listnest-form__hp {
+    position: absolute !important;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
 }
 
 /* ------------------------------------------------------------------

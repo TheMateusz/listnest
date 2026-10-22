@@ -129,7 +129,7 @@ class ListNest_CF7 {
 
         // Inline elements only: CF7 wraps form tags in paragraphs.
         $summary = '<span class="listnest listnest-cf7-summary">';
-        $summary .= '<span class="listnest-cf7-summary__title">' . esc_html( $this->get_list_title( $list_key ) ) . '</span>';
+        $summary .= '<span class="listnest-cf7-summary__title">' . esc_html( ListNest_Mail::list_title( $list_key ) ) . '</span>';
 
         if ( empty( $rows ) ) {
             $summary .= '<span class="listnest-cf7-summary__empty">' . esc_html__( 'No products on the list.', 'listnest' ) . '</span>';
@@ -146,7 +146,7 @@ class ListNest_CF7 {
                     )
                 ) . '</span>';
                 if ( ! empty( $row['attributes'] ) ) {
-                    $summary .= '<span class="listnest-cf7-summary__attributes">' . esc_html( $this->format_attributes_text( $row['attributes'], ', ' ) ) . '</span>';
+                    $summary .= '<span class="listnest-cf7-summary__attributes">' . esc_html( ListNest_Mail::attributes_text( $row['attributes'], ', ' ) ) . '</span>';
                 }
                 $summary .= '</span>';
             }
@@ -228,7 +228,7 @@ class ListNest_CF7 {
         }
 
         $rows = ListNest_Item::prepare_rows( $this->get_items( $list_key ), true );
-        $mail = $html ? $this->get_mail_html( $list_key, $rows ) : $this->get_mail_text( $list_key, $rows );
+        $mail = $html ? ListNest_Mail::products_html( $list_key, $rows ) : ListNest_Mail::products_text( $list_key, $rows );
 
         /**
          * Filters the list inserted into the mail by the [listnest_products] mail tag.
@@ -239,100 +239,6 @@ class ListNest_CF7 {
          * @param bool   $html     Whether the mail is HTML.
          */
         return (string) apply_filters( 'listnest_cf7_mail_output', $mail, $list_key, $rows, (bool) $html );
-    }
-
-    /**
-     * HTML table for HTML mails. Inline styles only (mail clients).
-     *
-     * @param string $list_key List key.
-     * @param array  $rows     Rows.
-     * @return string
-     */
-    private function get_mail_html( $list_key, array $rows ) {
-        $title = sprintf(
-            /* translators: %s: list name */
-            __( 'List: %s', 'listnest' ),
-            $this->get_list_title( $list_key )
-        );
-
-        $html = '<p><strong>' . esc_html( $title ) . '</strong></p>';
-
-        if ( empty( $rows ) ) {
-            return $html . '<p>' . esc_html__( 'No products on the list.', 'listnest' ) . '</p>';
-        }
-
-        $th = 'style="background:#f4f4f4;text-align:left;padding:6px;border:1px solid #ddd;"';
-        $td = 'style="padding:6px;border:1px solid #ddd;vertical-align:top;"';
-
-        $html .= '<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;max-width:600px;">';
-        $html .= '<thead><tr>';
-        $html .= '<th ' . $th . '>' . esc_html__( 'Product', 'listnest' ) . '</th>';
-        $html .= '<th ' . $th . '>' . esc_html__( 'Attributes', 'listnest' ) . '</th>';
-        $html .= '<th ' . $th . '>' . esc_html__( 'Quantity', 'listnest' ) . '</th>';
-        $html .= '</tr></thead><tbody>';
-
-        foreach ( $rows as $row ) {
-            $name = '' !== $row['name'] ? $row['name'] : __( 'Unknown product', 'listnest' );
-
-            if ( empty( $row['attributes'] ) ) {
-                $attributes = esc_html__( 'No attributes', 'listnest' );
-            } else {
-                $lines = array();
-                foreach ( $row['attributes'] as $attribute ) {
-                    $lines[] = esc_html( $attribute['label'] ) . ': ' . esc_html( $attribute['value'] );
-                }
-                $attributes = implode( '<br>', $lines );
-            }
-
-            $html .= '<tr>';
-            $html .= '<td ' . $td . '>' . esc_html( $name ) . '</td>';
-            $html .= '<td ' . $td . '>' . $attributes . '</td>';
-            $html .= '<td ' . $td . '>' . esc_html( number_format_i18n( $row['quantity'] ) ) . '</td>';
-            $html .= '</tr>';
-        }
-
-        $html .= '</tbody></table>';
-
-        return $html;
-    }
-
-    /**
-     * Plain-text listing for text mails.
-     *
-     * @param string $list_key List key.
-     * @param array  $rows     Rows.
-     * @return string
-     */
-    private function get_mail_text( $list_key, array $rows ) {
-        $lines   = array();
-        $lines[] = sprintf(
-            /* translators: %s: list name */
-            __( 'List: %s', 'listnest' ),
-            $this->plain_text( $this->get_list_title( $list_key ) )
-        );
-        $lines[] = '';
-
-        if ( empty( $rows ) ) {
-            $lines[] = __( 'No products on the list.', 'listnest' );
-            return implode( "\n", $lines );
-        }
-
-        $number = 0;
-        foreach ( $rows as $row ) {
-            ++$number;
-            $name = '' !== $row['name'] ? $row['name'] : __( 'Unknown product', 'listnest' );
-
-            $attributes = empty( $row['attributes'] )
-                ? __( 'No attributes', 'listnest' )
-                : $this->format_attributes_text( $row['attributes'], '; ' );
-
-            $lines[] = $number . '. ' . __( 'Product', 'listnest' ) . ': ' . $this->plain_text( $name );
-            $lines[] = '   ' . __( 'Attributes', 'listnest' ) . ': ' . $this->plain_text( $attributes );
-            $lines[] = '   ' . __( 'Quantity', 'listnest' ) . ': ' . number_format_i18n( $row['quantity'] );
-            $lines[] = '';
-        }
-
-        return rtrim( implode( "\n", $lines ) );
     }
 
     /* ------------------------------------------------------------------
@@ -465,44 +371,5 @@ class ListNest_CF7 {
             return WPCF7_ContactForm::get_current();
         }
         return null;
-    }
-
-    /**
-     * List name (list post title), falling back to the key.
-     *
-     * @param string $list_key List key.
-     * @return string Plain text.
-     */
-    private function get_list_title( $list_key ) {
-        $list_id = ListNest_CPT::get_published_list_id( $list_key );
-        $title   = $list_id ? get_the_title( $list_id ) : '';
-        $title   = $this->plain_text( $title );
-        return '' !== $title ? $title : $list_key;
-    }
-
-    /**
-     * "Label: value" pairs joined with a separator (plain text).
-     *
-     * @param array  $attributes List of array( label, value ).
-     * @param string $separator  Separator.
-     * @return string
-     */
-    private function format_attributes_text( array $attributes, $separator ) {
-        $pairs = array();
-        foreach ( $attributes as $attribute ) {
-            $pairs[] = $attribute['label'] . ': ' . $attribute['value'];
-        }
-        return implode( $separator, $pairs );
-    }
-
-    /**
-     * Plain text on a single line (tags and entities removed).
-     *
-     * @param string $text Text.
-     * @return string
-     */
-    private function plain_text( $text ) {
-        $text = wp_strip_all_tags( html_entity_decode( (string) $text, ENT_QUOTES, 'UTF-8' ) );
-        return trim( preg_replace( '/\s+/u', ' ', $text ) );
     }
 }

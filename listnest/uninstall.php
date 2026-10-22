@@ -1,10 +1,12 @@
 <?php
 /**
- * Uninstall routine: removes all lists (listnest_list posts and their meta).
+ * Uninstall routine: removes all lists and stored inquiries
+ * (listnest_list and listnest_inquiry posts and their meta).
  *
  * The plugin stores no options. Visitors' list contents live in the
  * WooCommerce session, which expires on its own; the WooCommerce session
- * table is intentionally left untouched.
+ * table is intentionally left untouched. Rate-limit transients of the
+ * inquiry form expire on their own.
  *
  * @package ListNest
  */
@@ -14,15 +16,16 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 /**
- * Force-deletes every listnest_list post (any status) on the current site.
+ * Force-deletes every listnest_list and listnest_inquiry post (any status)
+ * on the current site.
  * wp_delete_post() also removes the post meta.
  */
 function listnest_uninstall_site() {
     global $wpdb;
 
-    // The post type is not registered during uninstall, so query the IDs directly.
+    // The post types are not registered during uninstall, so query the IDs directly.
     $ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-off uninstall query.
-        $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s", 'listnest_list' )
+        $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type IN ( %s, %s )", 'listnest_list', 'listnest_inquiry' )
     );
 
     foreach ( (array) $ids as $id ) {

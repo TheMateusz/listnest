@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ListNest 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/listnest\n"
-"POT-Creation-Date: 2026-09-29 20:30+0200\n"
-"PO-Revision-Date: 2026-09-29 20:30+0200\n"
+"POT-Creation-Date: 2026-10-01 12:00+0200\n"
+"PO-Revision-Date: 2026-10-01 12:00+0200\n"
 "Last-Translator: Mateusz Matusiak\n"
 "Language-Team: Polish\n"
 "Language: pl_PL\n"
@@ -23,8 +23,8 @@ msgstr "ListNest"
 
 #. Description of the plugin
 #: listnest.php
-msgid "Let customers collect products into custom lists — quote requests, samples, wishlists — and send them through Contact Form 7."
-msgstr "Pozwala klientom zbierać produkty na własnych listach — zapytania ofertowe, próbki, listy życzeń — i wysyłać je przez Contact Form 7."
+msgid "Let customers collect products into custom lists — quote requests, samples, wishlists — and send them with the built-in inquiry form or Contact Form 7."
+msgstr "Pozwala klientom zbierać produkty na własnych listach — zapytania ofertowe, próbki, listy życzeń — i wysyłać je wbudowanym formularzem zapytania lub przez Contact Form 7."
 
 #. Author of the plugin
 #: listnest.php
@@ -62,8 +62,8 @@ msgstr "Dodano do listy."
 msgid "ListNest: this form tag needs the key of a published list, e.g. %s."
 msgstr "ListNest: ten znacznik formularza wymaga klucza opublikowanej listy, np. %s."
 
-#: includes/class-listnest-cf7.php:135 includes/class-listnest-cf7.php:261
-#: includes/class-listnest-cf7.php:316 templates/list-table.php:43
+#: includes/class-listnest-cf7.php:135 includes/class-listnest-mail.php:33
+#: includes/class-listnest-mail.php:88 templates/list-table.php:43
 msgid "No products on the list."
 msgstr "Brak produktów na liście."
 
@@ -73,43 +73,15 @@ msgstr "Brak produktów na liście."
 msgid "× %s"
 msgstr "× %s"
 
-#: includes/class-listnest-cf7.php:202
+#: includes/class-listnest-cf7.php:202 includes/class-listnest-form.php:299
 msgid "Your list is empty. Add at least one product before sending the form."
 msgstr "Twoja lista jest pusta. Dodaj co najmniej jeden produkt przed wysłaniem formularza."
-
-#. translators: %s: list name
-#: includes/class-listnest-cf7.php:254 includes/class-listnest-cf7.php:310
-#, php-format
-msgid "List: %s"
-msgstr "Lista: %s"
-
-#: includes/class-listnest-cf7.php:269 includes/class-listnest-cf7.php:329
-#: templates/list-table.php:56
-msgid "Product"
-msgstr "Produkt"
-
-#: includes/class-listnest-cf7.php:270 includes/class-listnest-cf7.php:330
-msgid "Attributes"
-msgstr "Atrybuty"
-
-#: includes/class-listnest-cf7.php:271 includes/class-listnest-cf7.php:331
-#: templates/list-table.php:57
-msgid "Quantity"
-msgstr "Ilość"
-
-#: includes/class-listnest-cf7.php:275 includes/class-listnest-cf7.php:323
-msgid "Unknown product"
-msgstr "Nieznany produkt"
-
-#: includes/class-listnest-cf7.php:278 includes/class-listnest-cf7.php:326
-msgid "No attributes"
-msgstr "Brak atrybutów"
 
 #: includes/class-listnest-cpt.php:26 includes/class-listnest-cpt.php:28
 msgid "Lists"
 msgstr "Listy"
 
-#: includes/class-listnest-cpt.php:27
+#: includes/class-listnest-cpt.php:27 includes/class-listnest-inquiries.php:249
 msgid "List"
 msgstr "Lista"
 
@@ -145,112 +117,279 @@ msgstr "Nie znaleziono list"
 msgid "List options"
 msgstr "Opcje listy"
 
-#: includes/class-listnest-cpt.php:80
+#: includes/class-listnest-cpt.php:86
 msgid "\"Add to list\" button"
 msgstr "Przycisk „Dodaj do listy”"
 
-#: includes/class-listnest-cpt.php:84
+#: includes/class-listnest-cpt.php:90
 msgid "Show button on product pages"
 msgstr "Pokazuj przycisk na stronach produktów"
 
-#: includes/class-listnest-cpt.php:88
+#: includes/class-listnest-cpt.php:94
 msgid "Button label:"
 msgstr "Etykieta przycisku:"
 
-#: includes/class-listnest-cpt.php:90 includes/class-listnest-frontend.php:292
+#: includes/class-listnest-cpt.php:96 includes/class-listnest-frontend.php:292
 msgid "Add to list"
 msgstr "Dodaj do listy"
 
 #. translators: %s: shortcode example
-#: includes/class-listnest-cpt.php:97
+#: includes/class-listnest-cpt.php:103
 #, php-format
 msgid "To place the button anywhere else, use the shortcode %s."
 msgstr "Aby umieścić przycisk w innym miejscu, użyj kodu skróconego %s."
 
-#: includes/class-listnest-cpt.php:104
+#: includes/class-listnest-cpt.php:110
 msgid "Select an action after adding a product to this list:"
 msgstr "Wybierz działanie po dodaniu produktu do tej listy:"
 
-#: includes/class-listnest-cpt.php:109
+#: includes/class-listnest-cpt.php:115
 msgid "Redirect to the page of your choice"
 msgstr "Przekieruj na wybraną stronę"
 
-#: includes/class-listnest-cpt.php:114
+#: includes/class-listnest-cpt.php:120
 msgid "Replace the button with a link to a page of your choice (e.g. the list), using your own text"
 msgstr "Zamień przycisk na link do wybranej strony (np. listy) z własnym tekstem"
 
-#: includes/class-listnest-cpt.php:119
+#: includes/class-listnest-cpt.php:125
 msgid "Show a confirmation popup"
 msgstr "Pokaż okno potwierdzenia"
 
-#: includes/class-listnest-cpt.php:125 includes/class-listnest-cpt.php:146
-#: includes/class-listnest-cpt.php:186
+#: includes/class-listnest-cpt.php:131 includes/class-listnest-cpt.php:152
+#: includes/class-listnest-cpt.php:192
 msgid "Target page:"
 msgstr "Strona docelowa:"
 
-#: includes/class-listnest-cpt.php:131 includes/class-listnest-cpt.php:152
-#: includes/class-listnest-cpt.php:192
+#: includes/class-listnest-cpt.php:137 includes/class-listnest-cpt.php:158
+#: includes/class-listnest-cpt.php:198
 msgid "— Select a page —"
 msgstr "— Wybierz stronę —"
 
-#: includes/class-listnest-cpt.php:139
+#: includes/class-listnest-cpt.php:145
 msgid "Link button settings:"
 msgstr "Ustawienia przycisku z linkiem:"
 
-#: includes/class-listnest-cpt.php:141
+#: includes/class-listnest-cpt.php:147
 msgid "Button text:"
 msgstr "Tekst przycisku:"
 
-#: includes/class-listnest-cpt.php:143 includes/class-listnest-frontend.php:294
+#: includes/class-listnest-cpt.php:149 includes/class-listnest-frontend.php:294
 msgid "See list"
 msgstr "Zobacz listę"
 
-#: includes/class-listnest-cpt.php:160
+#: includes/class-listnest-cpt.php:166
 msgid "Popup settings:"
 msgstr "Ustawienia okna potwierdzenia:"
 
-#: includes/class-listnest-cpt.php:163
+#: includes/class-listnest-cpt.php:169
 msgid "Popup title:"
 msgstr "Tytuł okna:"
 
-#: includes/class-listnest-cpt.php:167 includes/class-listnest-frontend.php:297
+#: includes/class-listnest-cpt.php:173 includes/class-listnest-frontend.php:297
 #: templates/popup.php:27
 msgid "Product added to the list"
 msgstr "Produkt został dodany do listy"
 
-#: includes/class-listnest-cpt.php:171
+#: includes/class-listnest-cpt.php:177
 msgid "Closing button text:"
 msgstr "Tekst przycisku zamykającego:"
 
-#: includes/class-listnest-cpt.php:174 includes/class-listnest-frontend.php:298
+#: includes/class-listnest-cpt.php:180 includes/class-listnest-frontend.php:298
 #: templates/popup.php:29
 msgid "Continue shopping"
 msgstr "Kontynuuj zakupy"
 
-#: includes/class-listnest-cpt.php:179
+#: includes/class-listnest-cpt.php:185
 msgid "\"Go to list\" button text:"
 msgstr "Tekst przycisku „Przejdź do listy”:"
 
-#: includes/class-listnest-cpt.php:182 includes/class-listnest-frontend.php:299
+#: includes/class-listnest-cpt.php:188 includes/class-listnest-frontend.php:299
 #: templates/popup.php:30
 msgid "Go to list"
 msgstr "Przejdź do listy"
 
-#: includes/class-listnest-cpt.php:199
+#: includes/class-listnest-cpt.php:205
 msgid "Leave text fields empty to use the default, translatable text."
 msgstr "Pozostaw pola tekstowe puste, aby użyć domyślnego, tłumaczonego tekstu."
 
 #. translators: %s: shortcode example
-#: includes/class-listnest-cpt.php:205
+#: includes/class-listnest-cpt.php:211
 #, php-format
 msgid "To display the list, use the shortcode %s."
 msgstr "Aby wyświetlić listę, użyj kodu skróconego %s."
 
+#: includes/class-listnest-cpt.php:217
+msgid "Inquiry form:"
+msgstr "Formularz zapytania:"
+
+#: includes/class-listnest-cpt.php:221
+msgid "None"
+msgstr "Brak"
+
+#: includes/class-listnest-cpt.php:225
+msgid "Built-in form (shown below the list)"
+msgstr "Wbudowany formularz (wyświetlany pod listą)"
+
+#: includes/class-listnest-cpt.php:229
+msgid "Contact Form 7"
+msgstr "Contact Form 7"
+
+#: includes/class-listnest-cpt.php:235
+msgid "Send inquiries to:"
+msgstr "Wysyłaj zapytania na adres:"
+
+#: includes/class-listnest-cpt.php:240
+msgid "Separate multiple addresses with commas. Default: the site admin email."
+msgstr "Kilka adresów oddziel przecinkami. Domyślnie: adres e-mail administratora strony."
+
+#: includes/class-listnest-cpt.php:243
+msgid "Email subject:"
+msgstr "Temat wiadomości:"
+
+#: includes/class-listnest-cpt.php:246 includes/class-listnest-form.php:483
+msgid "New inquiry: {list}"
+msgstr "Nowe zapytanie: {list}"
+
+#. translators: %s: list of placeholders
+#: includes/class-listnest-cpt.php:252
+#, php-format
+msgid "Placeholders: %s"
+msgstr "Znaczniki: %s"
+
+#: includes/class-listnest-cpt.php:261
+msgid "Send a copy to the customer"
+msgstr "Wyślij kopię do klienta"
+
+#: includes/class-listnest-cpt.php:265
+msgid "Consent checkbox text:"
+msgstr "Treść zgody (checkbox):"
+
+#: includes/class-listnest-cpt.php:267 includes/class-listnest-form.php:245
+msgid "I agree to the processing of my personal data in order to handle this inquiry."
+msgstr "Wyrażam zgodę na przetwarzanie moich danych osobowych w celu obsługi tego zapytania."
+
+#: includes/class-listnest-cpt.php:268
+msgid "Links are allowed. Leave empty to use the default text with a link to your privacy policy page."
+msgstr "Można wstawiać linki. Zostaw puste, aby użyć domyślnej treści z linkiem do strony polityki prywatności."
+
+#. translators: 1: shortcode example, 2: admin menu path
+#: includes/class-listnest-cpt.php:274
+#, php-format
+msgid "To place the form somewhere else, use %1$s. Received inquiries are saved under %2$s."
+msgstr "Aby wstawić formularz w innym miejscu, użyj %1$s. Otrzymane zapytania są zapisywane w %2$s."
+
+#: includes/class-listnest-cpt.php:276
+msgid "Lists → Inquiries"
+msgstr "Listy → Zapytania"
+
 #. translators: 1: Contact Form 7 form tag, 2: Contact Form 7 mail tag
-#: includes/class-listnest-cpt.php:214
+#: includes/class-listnest-cpt.php:287
 #, php-format
 msgid "Contact Form 7: add %1$s to the form and %2$s to the mail body."
 msgstr "Contact Form 7: dodaj %1$s do formularza i %2$s do treści wiadomości e-mail."
+
+#: includes/class-listnest-cpt.php:294
+msgid "Contact Form 7 is not active."
+msgstr "Contact Form 7 nie jest aktywny."
+
+#. translators: %s: shortcode example
+#: includes/class-listnest-form.php:172
+#, php-format
+msgid "ListNest: the form needs the key of a published list, e.g. %s."
+msgstr "ListNest: formularz wymaga klucza opublikowanej listy, np. %s."
+
+#: includes/class-listnest-form.php:192
+msgid "Your list is empty. Add products to the list to send an inquiry."
+msgstr "Twoja lista jest pusta. Dodaj produkty do listy, aby wysłać zapytanie."
+
+#: includes/class-listnest-form.php:228
+msgid "Thank you! Your inquiry has been sent. We will get back to you as soon as possible."
+msgstr "Dziękujemy! Twoje zapytanie zostało wysłane. Odpowiemy najszybciej, jak to możliwe."
+
+#: includes/class-listnest-form.php:248
+msgid "Privacy policy"
+msgstr "Polityka prywatności"
+
+#: includes/class-listnest-form.php:290
+msgid "Your session has expired. Please send the form again."
+msgstr "Twoja sesja wygasła. Wyślij formularz ponownie."
+
+#: includes/class-listnest-form.php:303
+msgid "Too many inquiries have been sent from your connection. Please try again in a few minutes."
+msgstr "Z Twojego połączenia wysłano zbyt wiele zapytań. Spróbuj ponownie za kilka minut."
+
+#: includes/class-listnest-form.php:335
+msgid "Your inquiry could not be sent. Please try again later or contact us directly."
+msgstr "Nie udało się wysłać zapytania. Spróbuj ponownie później lub skontaktuj się z nami bezpośrednio."
+
+#: includes/class-listnest-form.php:390
+msgid "Please enter your name."
+msgstr "Podaj imię i nazwisko."
+
+#: includes/class-listnest-form.php:392
+msgid "The name is too long."
+msgstr "Imię i nazwisko jest za długie."
+
+#: includes/class-listnest-form.php:396
+msgid "Please enter your email address."
+msgstr "Podaj adres e-mail."
+
+#: includes/class-listnest-form.php:398
+msgid "Please enter a valid email address."
+msgstr "Podaj poprawny adres e-mail."
+
+#: includes/class-listnest-form.php:402
+msgid "Please enter a valid phone number."
+msgstr "Podaj poprawny numer telefonu."
+
+#. translators: %s: maximum number of characters
+#: includes/class-listnest-form.php:408
+#, php-format
+msgid "The message is too long (maximum %s characters)."
+msgstr "Wiadomość jest za długa (maksymalnie %s znaków)."
+
+#: includes/class-listnest-form.php:414
+msgid "Please give your consent to send the inquiry."
+msgstr "Zaznacz zgodę, aby wysłać zapytanie."
+
+#: includes/class-listnest-form.php:493
+msgid "You have received a new inquiry:"
+msgstr "Otrzymałeś nowe zapytanie:"
+
+#: includes/class-listnest-form.php:518
+msgid "Thank you for your inquiry. We will get back to you as soon as possible. Here is a copy of what you sent:"
+msgstr "Dziękujemy za zapytanie. Odpowiemy najszybciej, jak to możliwe. Poniżej kopia przesłanych informacji:"
+
+#. translators: %s: site name
+#: includes/class-listnest-form.php:525
+#, php-format
+msgid "Your inquiry – %s"
+msgstr "Twoje zapytanie – %s"
+
+#: includes/class-listnest-form.php:574
+#: includes/class-listnest-inquiries.php:181
+#: includes/class-listnest-inquiries.php:413 templates/inquiry-form.php:80
+msgid "Name"
+msgstr "Imię i nazwisko"
+
+#: includes/class-listnest-form.php:575
+#: includes/class-listnest-inquiries.php:185
+#: includes/class-listnest-inquiries.php:248
+#: includes/class-listnest-inquiries.php:417 templates/inquiry-form.php:89
+msgid "Email"
+msgstr "E-mail"
+
+#: includes/class-listnest-form.php:578
+#: includes/class-listnest-inquiries.php:190
+#: includes/class-listnest-inquiries.php:421 templates/inquiry-form.php:98
+msgid "Phone"
+msgstr "Telefon"
+
+#: includes/class-listnest-form.php:581
+#: includes/class-listnest-inquiries.php:195
+#: includes/class-listnest-inquiries.php:425 templates/inquiry-form.php:108
+msgid "Message"
+msgstr "Wiadomość"
 
 #: includes/class-listnest-frontend.php:365
 msgid "The product could not be added to the list. Please try again."
@@ -272,21 +411,165 @@ msgstr "Wybierz opcje produktu, zanim dodasz go do listy."
 msgid "Adding to the list…"
 msgstr "Dodawanie do listy…"
 
-#: includes/class-listnest-plugin.php:112
+#: includes/class-listnest-inquiries.php:68
+#: includes/class-listnest-inquiries.php:70
+#: includes/class-listnest-inquiries.php:71
+#: includes/class-listnest-inquiries.php:405
+msgid "Inquiries"
+msgstr "Zapytania"
+
+#: includes/class-listnest-inquiries.php:69
+#: includes/class-listnest-inquiries.php:72
+#: includes/class-listnest-inquiries.php:156
+#: includes/class-listnest-inquiries.php:247
+msgid "Inquiry"
+msgstr "Zapytanie"
+
+#: includes/class-listnest-inquiries.php:73
+msgid "View inquiry"
+msgstr "Zobacz zapytanie"
+
+#: includes/class-listnest-inquiries.php:74
+msgid "Search inquiries"
+msgstr "Szukaj zapytań"
+
+#: includes/class-listnest-inquiries.php:75
+msgid "No inquiries yet."
+msgstr "Nie ma jeszcze żadnych zapytań."
+
+#: includes/class-listnest-inquiries.php:76
+msgid "No inquiries found in Trash."
+msgstr "Brak zapytań w koszu."
+
+#. translators: 1: customer name, 2: list name
+#: includes/class-listnest-inquiries.php:118
+#, php-format
+msgid "%1$s – %2$s"
+msgstr "%1$s – %2$s"
+
+#: includes/class-listnest-inquiries.php:157
+msgid "Actions"
+msgstr "Akcje"
+
+#: includes/class-listnest-inquiries.php:177
+#: includes/class-listnest-inquiries.php:252
+#: includes/class-listnest-inquiries.php:409
+msgid "Date"
+msgstr "Data"
+
+#: includes/class-listnest-inquiries.php:199
+#: includes/class-listnest-inquiries.php:250
+#: includes/class-listnest-inquiries.php:429
+msgid "Products"
+msgstr "Produkty"
+
+#: includes/class-listnest-inquiries.php:204
+msgid "Consent given"
+msgstr "Udzielona zgoda"
+
+#: includes/class-listnest-inquiries.php:209
+#: includes/class-listnest-inquiries.php:251
+msgid "Email to the shop"
+msgstr "E-mail do sklepu"
+
+#. translators: %s: list name
+#: includes/class-listnest-inquiries.php:225
+#, php-format
+msgid "Re: your inquiry – %s"
+msgstr "Re: Twoje zapytanie – %s"
+
+#: includes/class-listnest-inquiries.php:230
+msgid "Reply by email"
+msgstr "Odpowiedz e-mailem"
+
+#: includes/class-listnest-inquiries.php:234
+msgid "Move to Trash"
+msgstr "Przenieś do kosza"
+
+#: includes/class-listnest-inquiries.php:288
+msgid "Sent"
+msgstr "Wysłany"
+
+#: includes/class-listnest-inquiries.php:290
+msgid "Not sent – check your site's email delivery"
+msgstr "Niewysłany – sprawdź wysyłkę e-maili na stronie"
+
+#: includes/class-listnest-inquiries.php:309
+msgid "View"
+msgstr "Zobacz"
+
+#: includes/class-listnest-inquiries.php:350
+#: includes/class-listnest-inquiries.php:362
+msgid "ListNest inquiries"
+msgstr "Zapytania ListNest"
+
+#: includes/class-listnest-inquiries.php:475
+msgid "When you send an inquiry with a product list, we store your name, email address, phone number (if given), message, the products on your list and your consent in our website database, and send them to us by email. We use this data to answer your inquiry. You can ask us to export or erase it."
+msgstr "Gdy wysyłasz zapytanie z listą produktów, zapisujemy w bazie danych strony Twoje imię i nazwisko, adres e-mail, numer telefonu (jeśli został podany), wiadomość, produkty z listy oraz udzieloną zgodę, a także przesyłamy je do nas e-mailem. Wykorzystujemy te dane, aby odpowiedzieć na zapytanie. Możesz poprosić o ich eksport lub usunięcie."
+
+#. translators: %s: list name
+#: includes/class-listnest-mail.php:26 includes/class-listnest-mail.php:82
+#, php-format
+msgid "List: %s"
+msgstr "Lista: %s"
+
+#: includes/class-listnest-mail.php:41 includes/class-listnest-mail.php:101
+#: templates/list-table.php:56
+msgid "Product"
+msgstr "Produkt"
+
+#: includes/class-listnest-mail.php:42 includes/class-listnest-mail.php:102
+msgid "Attributes"
+msgstr "Atrybuty"
+
+#: includes/class-listnest-mail.php:43 includes/class-listnest-mail.php:103
+#: templates/list-table.php:57
+msgid "Quantity"
+msgstr "Ilość"
+
+#: includes/class-listnest-mail.php:47 includes/class-listnest-mail.php:95
+msgid "Unknown product"
+msgstr "Nieznany produkt"
+
+#: includes/class-listnest-mail.php:50 includes/class-listnest-mail.php:98
+msgid "No attributes"
+msgstr "Brak atrybutów"
+
+#: includes/class-listnest-plugin.php:120
 msgid "ListNest requires WooCommerce to be installed and active. Front-end list features are disabled until WooCommerce is activated."
 msgstr "ListNest wymaga zainstalowanej i aktywnej wtyczki WooCommerce. Funkcje list w sklepie pozostaną wyłączone do czasu aktywacji WooCommerce."
 
-#: includes/class-listnest-shortcodes.php:66
+#: includes/class-listnest-shortcodes.php:75
 msgid "ListNest: the list_key shortcode attribute is missing."
 msgstr "ListNest: w kodzie skróconym brakuje atrybutu list_key."
 
-#: includes/class-listnest-shortcodes.php:148
+#: includes/class-listnest-shortcodes.php:165
 msgid "Your session has expired. Please go back, reload the page and try again."
 msgstr "Twoja sesja wygasła. Wróć, odśwież stronę i spróbuj ponownie."
 
-#: includes/class-listnest-shortcodes.php:149
+#: includes/class-listnest-shortcodes.php:166
 msgid "List not updated"
 msgstr "Lista nie została zaktualizowana"
+
+#: templates/inquiry-form.php:56
+msgid "Send your inquiry"
+msgstr "Wyślij zapytanie"
+
+#: templates/inquiry-form.php:64
+msgid "Please correct the highlighted fields."
+msgstr "Popraw zaznaczone pola."
+
+#: templates/inquiry-form.php:73
+msgid "Leave this field empty"
+msgstr "Zostaw to pole puste"
+
+#: templates/inquiry-form.php:98 templates/inquiry-form.php:108
+msgid "(optional)"
+msgstr "(opcjonalnie)"
+
+#: templates/inquiry-form.php:127
+msgid "Send inquiry"
+msgstr "Wyślij zapytanie"
 
 #: templates/list-table.php:39
 msgid "The list has been updated."

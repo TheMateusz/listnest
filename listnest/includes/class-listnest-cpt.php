@@ -76,6 +76,12 @@ class ListNest_CPT {
         $auto_button  = get_post_meta($post->ID, '_listnest_list_auto_button', true);
         $button_label = get_post_meta($post->ID, '_listnest_list_add_button_label', true);
 
+        $form_type      = get_post_meta($post->ID, '_listnest_list_form', true);
+        $form_recipient = get_post_meta($post->ID, '_listnest_list_form_recipient', true);
+        $form_subject   = get_post_meta($post->ID, '_listnest_list_form_subject', true);
+        $form_copy      = get_post_meta($post->ID, '_listnest_list_form_copy', true);
+        $form_consent   = get_post_meta($post->ID, '_listnest_list_form_consent', true);
+
         ?>
         <p><strong><?php esc_html_e('"Add to list" button', 'listnest'); ?></strong></p>
         <p>
@@ -207,16 +213,87 @@ class ListNest_CPT {
             );
             ?>
         </p>
-        <p class="description">
-            <?php
-            printf(
-                /* translators: 1: Contact Form 7 form tag, 2: Contact Form 7 mail tag */
-                esc_html__('Contact Form 7: add %1$s to the form and %2$s to the mail body.', 'listnest'),
-                '<code>[listnest_products list:' . esc_html($list_key_example) . ']</code>',
-                '<code>[listnest_products]</code>'
-            );
-            ?>
+        <hr/>
+        <p><strong><?php esc_html_e('Inquiry form:', 'listnest'); ?></strong></p>
+        <p>
+            <label>
+                <input type="radio" name="listnest_list_form" value="" <?php checked($form_type, ''); ?> />
+                <?php esc_html_e('None', 'listnest'); ?>
+            </label><br/>
+            <label>
+                <input type="radio" name="listnest_list_form" value="builtin" <?php checked($form_type, 'builtin'); ?> />
+                <?php esc_html_e('Built-in form (shown below the list)', 'listnest'); ?>
+            </label><br/>
+            <label>
+                <input type="radio" name="listnest_list_form" value="cf7" <?php checked($form_type, 'cf7'); ?> />
+                <?php esc_html_e('Contact Form 7', 'listnest'); ?>
+            </label>
         </p>
+
+        <div id="form-builtin-fields" style="display: none;">
+            <p>
+                <label for="listnest_list_form_recipient"><?php esc_html_e('Send inquiries to:', 'listnest'); ?></label><br/>
+                <input type="text" name="listnest_list_form_recipient" id="listnest_list_form_recipient"
+                       value="<?php echo esc_attr($form_recipient); ?>"
+                       placeholder="<?php echo esc_attr(get_option('admin_email')); ?>"
+                       style="width: 300px;" />
+                <br/><span class="description"><?php esc_html_e('Separate multiple addresses with commas. Default: the site admin email.', 'listnest'); ?></span>
+            </p>
+            <p>
+                <label for="listnest_list_form_subject"><?php esc_html_e('Email subject:', 'listnest'); ?></label><br/>
+                <input type="text" name="listnest_list_form_subject" id="listnest_list_form_subject"
+                       value="<?php echo esc_attr($form_subject); ?>"
+                       placeholder="<?php esc_attr_e('New inquiry: {list}', 'listnest'); ?>"
+                       style="width: 300px;" />
+                <br/><span class="description">
+                    <?php
+                    printf(
+                        /* translators: %s: list of placeholders */
+                        esc_html__('Placeholders: %s', 'listnest'),
+                        '<code>{list}</code> <code>{name}</code> <code>{site}</code>'
+                    );
+                    ?>
+                </span>
+            </p>
+            <p>
+                <label>
+                    <input type="checkbox" name="listnest_list_form_copy" value="1" <?php checked($form_copy, '1'); ?> />
+                    <?php esc_html_e('Send a copy to the customer', 'listnest'); ?>
+                </label>
+            </p>
+            <p>
+                <label for="listnest_list_form_consent"><?php esc_html_e('Consent checkbox text:', 'listnest'); ?></label><br/>
+                <textarea name="listnest_list_form_consent" id="listnest_list_form_consent" rows="3" style="width: 100%; max-width: 600px;"
+                          placeholder="<?php esc_attr_e('I agree to the processing of my personal data in order to handle this inquiry.', 'listnest'); ?>"><?php echo esc_textarea($form_consent); ?></textarea>
+                <br/><span class="description"><?php esc_html_e('Links are allowed. Leave empty to use the default text with a link to your privacy policy page.', 'listnest'); ?></span>
+            </p>
+            <p class="description">
+                <?php
+                printf(
+                    /* translators: 1: shortcode example, 2: admin menu path */
+                    esc_html__('To place the form somewhere else, use %1$s. Received inquiries are saved under %2$s.', 'listnest'),
+                    '<code>[listnest_form list="' . esc_html($list_key_example) . '"]</code>',
+                    '<a href="' . esc_url(admin_url('edit.php?post_type=listnest_inquiry')) . '">' . esc_html__('Lists → Inquiries', 'listnest') . '</a>'
+                );
+                ?>
+            </p>
+        </div>
+
+        <div id="form-cf7-fields" style="display: none;">
+            <p class="description">
+                <?php
+                printf(
+                    /* translators: 1: Contact Form 7 form tag, 2: Contact Form 7 mail tag */
+                    esc_html__('Contact Form 7: add %1$s to the form and %2$s to the mail body.', 'listnest'),
+                    '<code>[listnest_products list:' . esc_html($list_key_example) . ']</code>',
+                    '<code>[listnest_products]</code>'
+                );
+                ?>
+            </p>
+            <?php if (! defined('WPCF7_VERSION')) : ?>
+                <p class="description" style="color: #b32d2e;"><?php esc_html_e('Contact Form 7 is not active.', 'listnest'); ?></p>
+            <?php endif; ?>
+        </div>
         <?php
     }
 
@@ -257,6 +334,31 @@ class ListNest_CPT {
 
         $auto_button  = (isset($_POST['listnest_list_auto_button']) && '1' === sanitize_key(wp_unslash($_POST['listnest_list_auto_button']))) ? '1' : '0';
         $button_label = isset($_POST['listnest_list_add_button_label']) ? sanitize_text_field(wp_unslash($_POST['listnest_list_add_button_label'])) : '';
+
+        $form_type = isset($_POST['listnest_list_form']) ? sanitize_key(wp_unslash($_POST['listnest_list_form'])) : '';
+        if (! in_array($form_type, array('builtin', 'cf7'), true)) {
+            $form_type = '';
+        }
+
+        $form_recipients = array();
+        if (isset($_POST['listnest_list_form_recipient'])) {
+            foreach (explode(',', sanitize_text_field(wp_unslash($_POST['listnest_list_form_recipient']))) as $email) {
+                $email = sanitize_email(trim($email));
+                if (is_email($email)) {
+                    $form_recipients[] = $email;
+                }
+            }
+        }
+
+        $form_subject = isset($_POST['listnest_list_form_subject']) ? sanitize_text_field(wp_unslash($_POST['listnest_list_form_subject'])) : '';
+        $form_copy    = (isset($_POST['listnest_list_form_copy']) && '1' === sanitize_key(wp_unslash($_POST['listnest_list_form_copy']))) ? '1' : '0';
+        $form_consent = isset($_POST['listnest_list_form_consent']) ? trim(wp_kses(wp_unslash($_POST['listnest_list_form_consent']), ListNest_Inquiries::get_consent_allowed_html())) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized with wp_kses().
+
+        update_post_meta($post_id, '_listnest_list_form', $form_type);
+        update_post_meta($post_id, '_listnest_list_form_recipient', implode(', ', $form_recipients));
+        update_post_meta($post_id, '_listnest_list_form_subject', $form_subject);
+        update_post_meta($post_id, '_listnest_list_form_copy', $form_copy);
+        update_post_meta($post_id, '_listnest_list_form_consent', $form_consent);
 
         update_post_meta($post_id, '_listnest_list_auto_button', $auto_button);
         update_post_meta($post_id, '_listnest_list_add_button_label', $button_label);
