@@ -1,0 +1,12 @@
+{
+  "name": "listnest-development",
+  "private": true,
+  "scripts": {
+    "test:syntax": "node dev/check-syntax.mjs",
+    "build:release": "powershell -NoProfile -ExecutionPolicy Bypass -File dev/build-release.ps1",
+    "pretest": "npm run test:syntax",
+    "test": "node dev/test-matrix.mjs --profile=current82",
+    "test:matrix": "node dev/check-syntax.mjs && node dev/test-matrix.mjs --all",
+    "test:plan": "node dev/test-matrix.mjs --all --plan"
+  }
+}
