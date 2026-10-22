@@ -1,0 +1,167 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Venti WC Custom List\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-02-28 07:09+0000\n"
+"PO-Revision-Date: 2025-02-28 09:41+0000\n"
+"Last-Translator: \n"
+"Language-Team: English (United States)\n"
+"Language: en_US\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.7.1; wp-6.7.2\n"
+"X-Domain: venti-wc-custom-list"
+
+#: includes/class-vwcl-cpt.php:96
+msgid "- Choose a side -"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:22
+msgid "Add New List"
+msgstr ""
+
+#: includes/class-vwcl-ajax.php:71
+msgid "Add to list"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:21
+msgid "All Lists"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:106
+msgid "Button text:"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:112 includes/class-vwcl-cpt.php:145
+msgid "Button URL:"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:79
+msgid "Change the button to your own text, and when clicked, move to the list"
+msgstr ""
+
+#: includes/class-vwcl-ajax.php:75 includes/class-vwcl-cpt.php:134
+#: includes/class-vwcl-popup.php:24
+msgid "Close"
+msgstr "Add more samplers"
+
+#: includes/class-vwcl-cpt.php:131
+msgid "Closing button text:"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:23
+msgid "Edit List"
+msgstr ""
+
+#: includes/class-vwcl-ajax.php:76 includes/class-vwcl-cpt.php:142
+#: includes/class-vwcl-popup.php:27
+msgid "Go to list"
+msgstr "Go to order"
+
+#: includes/class-vwcl-cpt.php:19
+msgid "List"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:46
+msgid "List options"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:18 includes/class-vwcl-cpt.php:20
+msgid "Lists"
+msgstr ""
+
+#. Author of the plugin
+msgid "Mateusz Matusiak"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:24
+msgid "New List"
+msgstr ""
+
+#: templates/list-table.php:59 templates/zapytanie-list-table.php:76
+msgid "No"
+msgstr ""
+
+#: includes/class-vwcl-shortcodes.php:18
+msgid "No list_key!"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:27
+msgid "No lists found"
+msgstr ""
+
+#: templates/list-table.php:14 templates/zapytanie-list-table.php:14
+msgid "No products on the list."
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:120
+msgid "Popup settings:"
+msgstr ""
+
+#: includes/class-vwcl-ajax.php:74 includes/class-vwcl-cpt.php:127
+#: includes/class-vwcl-popup.php:21
+msgid "Popup title"
+msgstr "Sampler added to order"
+
+#: includes/class-vwcl-cpt.php:123
+msgid "Popup title:"
+msgstr ""
+
+#: templates/list-table.php:24 templates/zapytanie-list-table.php:24
+msgid "PRODUCT"
+msgstr ""
+
+#: templates/list-table.php:27 templates/zapytanie-list-table.php:27
+msgid "QUANTITY"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:74
+msgid "Redirect to the page of your choice"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:90
+msgid "Redirection settings"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:26
+msgid "Search Lists"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:108
+msgid "See list"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:69
+msgid "Select an action after adding a product to this list:"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:104
+msgid "Settings for changing the button text:"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:139
+msgid "The text of the button to go to the list:"
+msgstr ""
+
+#: templates/list-table.php:74 templates/zapytanie-list-table.php:91
+msgid "Update the list"
+msgstr ""
+
+#. Name of the plugin
+msgid "Venti WC Custom List"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:25
+msgid "View List"
+msgstr ""
+
+#: includes/class-vwcl-cpt.php:84
+msgid "View popup"
+msgstr ""
+
+#. Description of the plugin
+msgid "Wtyczka tworząca system list produktów z obsługą AJAX i shortcodem."
+msgstr ""

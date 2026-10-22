@@ -1,0 +1,55 @@
+.vwcl-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    overflow: hidden;
+}
+
+.vwcl-popup.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+.vwcl-popup-content {
+    background: white;
+    padding: 60px 20px;
+    text-align: center;
+    max-width: 550px;
+    width: 80%;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.vwcl-popup-btn{
+    font-size: 14px;
+    color: #23c872 !important;
+    font-weight: 600;
+}
+
+
+.vwcl-popup-btn:hover{
+    text-decoration: underline;
+}
+
+.vwcl-popup.show .vwcl-popup-content {
+    opacity: 1;
+    transform: translateY(0);
+}
