@@ -1,10 +1,10 @@
-=== ListNest – Product Lists & Quote Requests for WooCommerce ===
+=== ListNest ===
 Contributors: mateuszmatusiak
 Tags: woocommerce, quote, wishlist, product list, request a quote
 Requires at least: 6.5
-Tested up to: 6.8
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.0
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -18,9 +18,9 @@ You can create as many lists as you need, each with its own button and behaviour
 
 **Typical uses**
 
-* **Quote requests** – customers build a list of products and ask for a price offer.
-* **Samples** – let customers pick the product samples they would like to receive.
-* **Wishlists and enquiry lists** – a simple list of products to come back to or ask about.
+* **Quote requests** - customers build a list of products and ask for a price offer.
+* **Samples** - let customers pick the product samples they would like to receive.
+* **Wishlists and enquiry lists** - a simple list of products to come back to or ask about.
 
 **Features**
 
@@ -36,46 +36,47 @@ You can create as many lists as you need, each with its own button and behaviour
 * Theme-independent templates that can be overridden in your theme, and neutral CSS with custom properties.
 * Lists are stored in the WooCommerce customer session: works for guests and logged-in customers.
 * Translation ready (Polish translation included).
+* Setup help, configurable inquiry retention and opt-in data deletion on uninstall.
 * Compatible with WooCommerce High-Performance Order Storage (HPOS).
 
 **Shortcodes**
 
-* `[listnest list_key="my-list"]` – displays the list page (products, quantities, update and remove).
-* `[listnest_button list="my-list"]` – displays the "Add to list" button for the current product. Use `product_id="123"` to target a specific product.
-* `[listnest_form list="my-list"]` – displays the built-in inquiry form. Not needed when the list's "Inquiry form" setting is "Built-in form": the form then appears below the list automatically.
+* `[listnest list_key="my-list"]` - displays the list page (products, quantities, update and remove).
+* `[listnest_button list="my-list"]` - displays the "Add to list" button for the current product. Use `product_id="123"` to target a specific product.
+* `[listnest_form list="my-list"]` - displays the built-in inquiry form. Not needed when the list's "Inquiry form" setting is "Built-in form": the form then appears below the list automatically.
 
 **Contact Form 7 tags**
 
-* Form tag: `[listnest_products list:my-list]` – attaches the list to the form and shows a summary of its products. The form cannot be sent while the list is empty.
-* Mail tag: `[listnest_products]` – inserts the list into the email body (an HTML table when "Use HTML content type" is enabled, plain text otherwise).
+* Form tag: `[listnest_products list:my-list]` - attaches the list to the form and shows a summary of its products. The form cannot be sent while the list is empty.
+* Mail tag: `[listnest_products]` - inserts the list into the email body (an HTML table when "Use HTML content type" is enabled, plain text otherwise).
 
 **Developers**
 
 Filters:
 
-* `listnest_can_add_product` – `( bool $can_add, WC_Product $product, WC_Product_Variation|null $variation )` – allow or deny adding a product.
-* `listnest_max_quantity` – `( int $max )` – maximum quantity per item (default 9999).
-* `listnest_max_items` – `( int $max )` – maximum number of distinct items per list (default 100).
-* `listnest_show_auto_button` – `( bool $show, string $list_key, WC_Product $product )` – show the automatic button for a list on a product page.
-* `listnest_button_label` – `( string $label, string $list_key, WC_Product $product )` – button label.
-* `listnest_button_classes` – `( string[] $classes, string $list_key, WC_Product $product )` – button CSS classes.
-* `listnest_script_config` – `( array $config )` – front-end script configuration (`ListNestConfig`).
-* `listnest_locate_template` – `( string $located, string[] $template_names, string $list_key )` – resolved template path.
-* `listnest_cf7_require_items` – `( bool $require, string $list_key, WPCF7_ContactForm|null $form )` – block sending the form while the list is empty (default true).
-* `listnest_cf7_clear_after_send` – `( bool $clear, string $list_key, WPCF7_ContactForm $form )` – clear the list after the mail has been sent (default true).
-* `listnest_cf7_mail_output` – `( string $output, string $list_key, array $rows, bool $html )` – list inserted by the mail tag.
-* `listnest_cf7_form_summary_html` – `( string $html, string $list_key, array $rows )` – list summary shown inside the form.
-* `listnest_form_mail` – `( array $args, string $type, array $data )` – mail sent by the built-in form (`$type`: `shop` or `customer`; `$args`: `to`, `subject`, `message`, `headers`).
-* `listnest_form_validation_errors` – `( array $errors, array $values )` – validation errors of the built-in form.
-* `listnest_form_consent_text` – `( string $html, array $settings )` – consent checkbox label; return an empty string to remove the checkbox.
-* `listnest_form_success_message` – `( string $message, string $list_key )` – message shown after sending.
-* `listnest_form_rate_limit` – `( array $limit )` – `max` inquiries per IP (default 5, 0 disables) within `window` seconds (default 600).
-* `listnest_form_store_inquiries` – `( bool $store, array $data )` – save inquiries under Lists → Inquiries (default true).
-* `listnest_inquiries_capability` – `( string $capability )` – capability required to view inquiries (default `manage_woocommerce`).
+* `listnest_can_add_product` - `( bool $can_add, WC_Product $product, WC_Product_Variation|null $variation )` - allow or deny adding a product.
+* `listnest_max_quantity` - `( int $max )` - maximum quantity per item (default 9999).
+* `listnest_max_items` - `( int $max )` - maximum number of distinct items per list (default 100).
+* `listnest_show_auto_button` - `( bool $show, string $list_key, WC_Product $product )` - show the automatic button for a list on a product page.
+* `listnest_button_label` - `( string $label, string $list_key, WC_Product $product )` - button label.
+* `listnest_button_classes` - `( string[] $classes, string $list_key, WC_Product $product )` - button CSS classes.
+* `listnest_script_config` - `( array $config )` - front-end script configuration (`ListNestConfig`).
+* `listnest_locate_template` - `( string $located, string[] $template_names, string $list_key )` - resolved template path.
+* `listnest_cf7_require_items` - `( bool $require, string $list_key, WPCF7_ContactForm|null $form )` - block sending the form while the list is empty (default true).
+* `listnest_cf7_clear_after_send` - `( bool $clear, string $list_key, WPCF7_ContactForm $form )` - clear the list after the mail has been sent (default true).
+* `listnest_cf7_mail_output` - `( string $output, string $list_key, array $rows, bool $html )` - list inserted by the mail tag.
+* `listnest_cf7_form_summary_html` - `( string $html, string $list_key, array $rows )` - list summary shown inside the form.
+* `listnest_form_mail` - `( array $args, string $type, array $data )` - mail sent by the built-in form (`$type`: `shop` or `customer`; `$args`: `to`, `subject`, `message`, `headers`).
+* `listnest_form_validation_errors` - `( array $errors, array $values )` - validation errors of the built-in form.
+* `listnest_form_consent_text` - `( string $html, array $settings )` - consent checkbox label; return an empty string to remove the checkbox.
+* `listnest_form_success_message` - `( string $message, string $list_key )` - message shown after sending.
+* `listnest_form_rate_limit` - `( array $limit )` - `max` inquiries per IP (default 5, 0 disables) within `window` seconds (default 600).
+* `listnest_form_store_inquiries` - `( bool $store, array $data )` - save inquiries under Lists → Inquiries (default true).
+* `listnest_inquiries_capability` - `( string $capability )` - capability required to view inquiries (default `manage_woocommerce`).
 
 Actions:
 
-* `listnest_inquiry_received` – `( array $data, int $inquiry_id, bool $sent )` – fires after the built-in form has been sent.
+* `listnest_inquiry_received` - `( array $data, int $inquiry_id, bool $sent )` - fires after the built-in form has been sent.
 
 JavaScript: a bubbling `listnest:added` event is dispatched on the button after a product has been added (`event.detail`: `listKey`, `productId`, `variationId`, `quantity`, `response`).
 
@@ -85,7 +86,7 @@ ListNest does not send any data to external services. List contents are kept in 
 
 == Installation ==
 
-1. Make sure WooCommerce is installed and active.
+1. Make sure WooCommerce 9.0 or newer is installed and active.
 2. Upload the `listnest` folder to `/wp-content/plugins/`, or install the plugin through the *Plugins* screen in WordPress.
 3. Activate the plugin through the *Plugins* screen.
 4. Go to *Lists → Add New List*, enter a title and publish. The list slug (e.g. `samples`) is the list key.
@@ -93,6 +94,7 @@ ListNest does not send any data to external services. List contents are kept in 
 6. Create a page with `[listnest list_key="samples"]` to display the list.
 7. Under "Inquiry form", choose "Built-in form" to show a form below the list, and set the recipient address. Received inquiries appear under *Lists → Inquiries*.
 8. Prefer Contact Form 7? Choose "Contact Form 7", add `[listnest_products list:samples]` to a CF7 form and `[listnest_products]` to its mail body, then place the form on the list page.
+9. Open *Lists → Setup and privacy* for shortcode examples, automatic inquiry retention and uninstall preferences. Do not change a list slug after placing its shortcode on a page without updating that shortcode and its CF7 tags.
 
 == Frequently Asked Questions ==
 
@@ -118,7 +120,7 @@ Copy the file from `wp-content/plugins/listnest/templates/` to `wp-content/theme
 
 = The list page or the form shows another visitor's products or an old list. What should I do? =
 
-Lists are personal, so pages that display them must not be served from a full-page cache. ListNest sets the `DONOTCACHEPAGE` constant on pages with the list shortcode or the Contact Form 7 form tag, which most caching plugins respect. If your caching plugin or server cache ignores it, exclude the list page and the form page from caching manually. "Add to list" buttons keep working on cached product pages.
+Lists are personal, so pages that display them must not be served from a full-page cache. ListNest sends no-cache headers before rendering known list/form pages and sets `DONOTCACHEPAGE`. An existing server/CDN cache can serve a page before WordPress runs: always exclude list and form pages from your full-page cache. Purge existing cached copies after configuration. "Add to list" buttons refresh an expired nonce on cached product pages.
 
 = Where are the lists stored? Is any data sent elsewhere? =
 
@@ -126,25 +128,24 @@ Lists are stored in the WooCommerce customer session (the same mechanism as the 
 
 = What happens when I uninstall the plugin? =
 
-All lists you created (and their settings) and all stored inquiries are deleted. Customers' session data expires on its own.
+Lists and inquiries are preserved by default. To permanently remove them on uninstall, first enable the deletion checkbox under *Lists → Setup and privacy*. Plugin settings and scheduled cleanup jobs are removed either way. Customers' session data and rate-limit transients expire on their own.
 
-== Screenshots ==
+= Can old inquiries be removed automatically? =
 
-1. List settings in the admin area: button, action after adding a product and popup texts.
-2. "Add to list" button on a variable product page.
-3. Confirmation popup after a product has been added.
-4. List page with thumbnails, attributes and quantities.
-5. Built-in inquiry form below the list.
-6. Inquiries saved in the admin area.
-7. Email with the list as an HTML table.
-8. Contact Form 7 form with the list summary.
+Set a retention period under *Lists → Setup and privacy*. Zero keeps inquiries until manually deleted. Cleanup runs daily via WP-Cron and removes up to 100 expired inquiries per run, including inquiries in Trash. Configure reliable cron execution on low-traffic sites. This does not delete email copies from mailboxes.
+
+= Does a sent status guarantee email delivery? =
+
+No. It indicates that the site's mail system accepted the message. Check the saved inquiry in the dashboard and configure SMTP if required. A failed notification does not discard a successfully saved inquiry.
 
 == Changelog ==
 
-= 0.1.0 =
-* Initial release.
+= 1.0.0 =
+* Initial public release with product lists, built-in inquiries and Contact Form 7 support.
+* Validated product variants, private product protection, role checks and duplicate-submission locking.
+* Setup help, configurable inquiry retention and opt-in uninstall data deletion.
 
 == Upgrade Notice ==
 
-= 0.1.0 =
+= 1.0.0 =
 Initial release.
