@@ -163,12 +163,16 @@ class ListNest_CF7 {
          */
         $summary = (string) apply_filters( 'listnest_cf7_form_summary_html', $summary, $list_key, $rows );
 
+        // REST cookie authentication needs a nonce or WordPress treats logged-in
+        // customers as guests, losing access to their WooCommerce session.
+        $rest_nonce = is_user_logged_in() ? '<input type="hidden" name="_wpnonce" value="' . esc_attr( wp_create_nonce( 'wp_rest' ) ) . '" />' : '';
+
         return sprintf(
             '<span class="wpcf7-form-control-wrap %1$s listnest-cf7" data-name="%1$s"><input type="hidden" name="%1$s" value="%2$s" />%3$s</span>',
             esc_attr( self::FIELD ),
             esc_attr( $list_key ),
             $summary
-        );
+        ) . $rest_nonce;
     }
 
     /**
@@ -195,11 +199,19 @@ class ListNest_CF7 {
             return $result;
         }
 
-        if ( '' === $list_key || empty( $this->get_items( $list_key ) ) ) {
+        $items = $this->get_items( $list_key );
+        $rows = ListNest_Item::prepare_rows( $items, true );
+        $unavailable = false;
+        foreach ( $rows as $row ) {
+            if ( ! $row['product'] ) {
+                $unavailable = true;
+            }
+        }
+        if ( '' === $list_key || empty( $items ) || $unavailable ) {
             // The form tag has no name of its own; report the error on the hidden field wrapper.
             $named       = clone $tag;
             $named->name = self::FIELD;
-            $result->invalidate( $named, __( 'Your list is empty. Add at least one product before sending the form.', 'listnest' ) );
+            $result->invalidate( $named, $unavailable ? __( 'Some products are no longer available. Remove them from your list before sending.', 'listnest' ) : __( 'Your list is empty. Add at least one product before sending the form.', 'listnest' ) );
         }
 
         return $result;
