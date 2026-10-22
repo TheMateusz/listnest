@@ -59,46 +59,46 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ( $rows as $row ) : ?>
-                        <?php $qty_id = 'listnest-qty-' . $list_key . '-' . str_replace( ':', '-', $row['item_key'] ); ?>
+                    <?php foreach ( $rows as $listnest_row ) : ?>
+                        <?php $listnest_qty_id = 'listnest-qty-' . $list_key . '-' . str_replace( ':', '-', $listnest_row['item_key'] ); ?>
                         <tr class="listnest-list__item">
                             <td class="listnest-list__image">
-                                <?php if ( $row['permalink'] ) : ?>
-                                    <a href="<?php echo esc_url( $row['permalink'] ); ?>" tabindex="-1" aria-hidden="true"><?php echo $row['image']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped by WC_Product::get_image(). ?></a>
+                                <?php if ( $listnest_row['permalink'] ) : ?>
+                                    <a href="<?php echo esc_url( $listnest_row['permalink'] ); ?>" tabindex="-1" aria-hidden="true"><?php echo $listnest_row['image']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped by WC_Product::get_image(). ?></a>
                                 <?php else : ?>
-                                    <?php echo $row['image']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped by WC_Product::get_image(). ?>
+                                    <?php echo $listnest_row['image']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped by WC_Product::get_image(). ?>
                                 <?php endif; ?>
                             </td>
                             <td class="listnest-list__product">
-                                <?php if ( $row['permalink'] ) : ?>
-                                    <a class="listnest-list__name" href="<?php echo esc_url( $row['permalink'] ); ?>"><?php echo esc_html( $row['name'] ); ?></a>
+                                <?php if ( $listnest_row['permalink'] ) : ?>
+                                    <a class="listnest-list__name" href="<?php echo esc_url( $listnest_row['permalink'] ); ?>"><?php echo esc_html( $listnest_row['name'] ); ?></a>
                                 <?php else : ?>
-                                    <span class="listnest-list__name"><?php echo esc_html( $row['name'] ); ?></span>
+                                    <span class="listnest-list__name"><?php echo esc_html( $listnest_row['name'] ); ?></span>
                                 <?php endif; ?>
 
-                                <?php if ( ! empty( $row['attributes'] ) ) : ?>
+                                <?php if ( ! empty( $listnest_row['attributes'] ) ) : ?>
                                     <dl class="listnest-list__attributes">
-                                        <?php foreach ( $row['attributes'] as $attribute ) : ?>
+                                        <?php foreach ( $listnest_row['attributes'] as $listnest_attribute ) : ?>
                                             <div class="listnest-list__attribute">
-                                                <dt><?php echo esc_html( $attribute['label'] ); ?>:</dt>
-                                                <dd><?php echo esc_html( $attribute['value'] ); ?></dd>
+                                                <dt><?php echo esc_html( $listnest_attribute['label'] ); ?>:</dt>
+                                                <dd><?php echo esc_html( $listnest_attribute['value'] ); ?></dd>
                                             </div>
                                         <?php endforeach; ?>
                                     </dl>
                                 <?php endif; ?>
                             </td>
                             <td class="listnest-list__quantity">
-                                <label class="screen-reader-text" for="<?php echo esc_attr( $qty_id ); ?>">
+                                <label class="screen-reader-text" for="<?php echo esc_attr( $listnest_qty_id ); ?>">
                                     <?php
                                     /* translators: %s: product name */
-                                    echo esc_html( sprintf( __( 'Quantity of %s', 'listnest' ), $row['name'] ) );
+                                    echo esc_html( sprintf( __( 'Quantity of %s', 'listnest' ), $listnest_row['name'] ) );
                                     ?>
                                 </label>
                                 <input type="number"
-                                    id="<?php echo esc_attr( $qty_id ); ?>"
+                                    id="<?php echo esc_attr( $listnest_qty_id ); ?>"
                                     class="input-text qty listnest-list__qty"
-                                    name="listnest_items[<?php echo esc_attr( $row['item_key'] ); ?>][quantity]"
-                                    value="<?php echo esc_attr( $row['quantity'] ); ?>"
+                                    name="listnest_items[<?php echo esc_attr( $listnest_row['item_key'] ); ?>][quantity]"
+                                    value="<?php echo esc_attr( $listnest_row['quantity'] ); ?>"
                                     min="0"
                                     max="<?php echo esc_attr( $max_quantity ); ?>"
                                     step="1"
@@ -108,8 +108,8 @@ if ( ! defined( 'ABSPATH' ) ) {
                                 <button type="submit"
                                     class="listnest-list__remove-button"
                                     name="listnest_remove_item"
-                                    value="<?php echo esc_attr( $row['item_key'] ); ?>"
-                                    aria-label="<?php echo esc_attr( sprintf( /* translators: %s: product name */ __( 'Remove %s', 'listnest' ), $row['name'] ) ); ?>">
+                                    value="<?php echo esc_attr( $listnest_row['item_key'] ); ?>"
+                                    aria-label="<?php echo esc_attr( sprintf( /* translators: %s: product name */ __( 'Remove %s', 'listnest' ), $listnest_row['name'] ) ); ?>">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </td>
@@ -119,7 +119,7 @@ if ( ! defined( 'ABSPATH' ) ) {
             </table>
 
             <div class="listnest-list__actions">
-                <button type="submit" class="button listnest-list__update" name="listnest_update_list" value="1"><?php esc_html_e( 'Update list', 'listnest' ); ?></button>
+                <button type="submit" class="<?php echo esc_attr( ListNest_Frontend::button_class( 'listnest-list__update' ) ); ?>" name="listnest_update_list" value="1"><?php esc_html_e( 'Update list', 'listnest' ); ?></button>
             </div>
         </form>
     <?php endif; ?>

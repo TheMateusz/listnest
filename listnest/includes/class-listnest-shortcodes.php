@@ -88,11 +88,11 @@ class ListNest_Shortcodes {
 
         // Variables available in the template (documented in templates/list-table.php).
         $items        = $this->storage->get_list($list_key);
-        $rows         = ListNest_Item::prepare_rows($items);
+        $rows         = ListNest_Item::prepare_rows($items, true);
         $max_quantity = $this->storage->get_max_quantity();
         $nonce_action = self::NONCE_ACTION;
         $nonce_field  = self::NONCE_FIELD;
-        $updated      = isset($_GET['listnest_list_updated']) && '1' === sanitize_key(wp_unslash($_GET['listnest_list_updated'])); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only flag set by our own redirect.
+        $updated      = isset($_GET['listnest_list_updated']) && is_string($_GET['listnest_list_updated']) && '1' === sanitize_key(wp_unslash($_GET['listnest_list_updated'])); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only flag set by our own redirect.
 
         $html = $this->render_template($template_path, compact('list_key', 'items', 'rows', 'max_quantity', 'nonce_action', 'nonce_field', 'updated'));
 
@@ -156,6 +156,11 @@ class ListNest_Shortcodes {
         if (!isset($_POST['listnest_list_key'])) {
             return;
         }
+        foreach (array('listnest_list_key', self::NONCE_FIELD, 'listnest_remove_item') as $field) {
+            if (isset($_POST[$field]) && ! is_string($_POST[$field])) {
+                wp_die(esc_html__('List not updated', 'listnest'), '', array('response' => 400));
+            }
+        }
 
         if (
             !isset($_POST[self::NONCE_FIELD]) ||
@@ -185,7 +190,7 @@ class ListNest_Shortcodes {
 
             foreach ($posted_items as $raw_key => $vals) {
                 $item_key = ListNest_Session::sanitize_item_key($raw_key);
-                if ('' === $item_key || !isset($items[$item_key]) || !is_array($vals) || !isset($vals['quantity'])) {
+                if ('' === $item_key || !isset($items[$item_key]) || !is_array($vals) || !isset($vals['quantity']) || !is_int($vals['quantity'])) {
                     continue;
                 }
 
@@ -205,11 +210,12 @@ class ListNest_Shortcodes {
             }
         }
 
-        $this->storage->set_list($list_key, $items);
+        if (! $this->storage->set_list($list_key, $items)) {
+            wp_die(esc_html__('List not updated', 'listnest'), '', array('response' => 500));
+        }
 
-        $referer = wp_get_referer();
-        $referer = remove_query_arg('listnest_sent', $referer ? $referer : home_url('/'));
-        wp_safe_redirect(add_query_arg('listnest_list_updated', '1', $referer));
+        $url = ListNest_Frontend::get_return_url(array('listnest_sent', 'listnest_list_updated'));
+        wp_safe_redirect(add_query_arg('listnest_list_updated', '1', $url));
         exit;
     }
 }

@@ -38,16 +38,17 @@ class ListNest_Item {
             $stored       = ( ! empty( $data['attributes'] ) && is_array( $data['attributes'] ) ) ? $data['attributes'] : array();
             $quantity     = isset( $data['quantity'] ) ? max( 1, absint( $data['quantity'] ) ) : 1;
 
-            if ( ! $product ) {
+            if ( ! $product || ! $parent || 'publish' !== $parent->get_status() || 'publish' !== $product->get_status()
+                || ( $variation_id && ( ! $product->is_type( 'variation' ) || (int) $product->get_parent_id() !== $product_id ) ) ) {
                 if ( $include_missing ) {
                     $rows[] = array(
                         'item_key'   => (string) $item_key,
                         'product'    => null,
                         'parent'     => null,
-                        'name'       => '',
+                        'name'       => __( 'Product no longer available', 'listnest' ),
                         'permalink'  => '',
                         'image'      => '',
-                        'attributes' => self::get_attribute_rows( null, null, $stored ),
+                        'attributes' => array(),
                         'quantity'   => $quantity,
                     );
                 }
