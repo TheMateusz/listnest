@@ -59,6 +59,11 @@ class ListNest_Ajax {
      * quantity (optional, default 1), attributes (optional JSON object).
      */
     public function ajax_add_to_list() {
+        foreach (array('security', 'list_key', 'product_id', 'variation_id', 'quantity', 'attributes') as $field) {
+            if (isset($_POST[$field]) && ! is_string($_POST[$field])) {
+                wp_send_json_error(array('message' => __('This product cannot be added to the list.', 'listnest')), 400);
+            }
+        }
         if (! check_ajax_referer(self::NONCE_ACTION, 'security', false)) {
             // The "invalid_nonce" code lets the script fetch a fresh nonce and retry once.
             wp_send_json_error(
@@ -94,6 +99,9 @@ class ListNest_Ajax {
         list($product_id, $variation_id, $variation) = $resolved;
 
         $attributes = $variation ? $this->sanitize_attributes($attributes, $variation) : array();
+        if (false === $attributes) {
+            wp_send_json_error(array('message' => __('Please select product options before adding this product to the list.', 'listnest')), 400);
+        }
 
         $item_key = (string) ($variation_id ? $variation_id : $product_id);
         if (! empty($attributes)) {
@@ -163,6 +171,9 @@ class ListNest_Ajax {
         if ('publish' !== $product->get_status()) {
             return false;
         }
+        if (! $product->is_type(array('simple', 'variable')) || ($product->is_type('variable') && ! $variation_id)) {
+            return false;
+        }
 
         $variation = null;
         if ($variation_id) {
@@ -200,39 +211,34 @@ class ListNest_Ajax {
      *
      * @param mixed                $attributes Decoded attributes JSON.
      * @param WC_Product_Variation $variation  Variation.
-     * @return array
+     * @return array|false Canonical attributes, or false for an invalid selection.
      */
     private function sanitize_attributes($attributes, $variation) {
         if (! is_array($attributes)) {
-            return array();
+            return false;
         }
 
         $variation_attributes = $variation->get_variation_attributes();
+        $parent = wc_get_product($variation->get_parent_id());
+        if (! $parent || ! $parent->is_type('variable')) {
+            return false;
+        }
+        $options = $parent->get_variation_attributes();
         $clean                = array();
 
-        foreach ($attributes as $key => $value) {
-            if (! is_string($key) || ! is_scalar($value)) {
-                continue;
+        foreach ($options as $name => $allowed) {
+            $key = 'attribute_' . sanitize_title($name);
+            $fixed = isset($variation_attributes[$key]) ? (string) $variation_attributes[$key] : '';
+            $value = isset($attributes[$key]) ? $attributes[$key] : $fixed;
+            if (! is_string($value)) {
+                return false;
             }
-
-            $key = sanitize_title($key);
-            if (! array_key_exists($key, $variation_attributes)) {
-                continue;
+            $value = 0 === strpos($key, 'attribute_pa_') ? sanitize_title($value) : sanitize_text_field($value);
+            if ('' === $value || ! in_array($value, $allowed, true) || ('' !== $fixed && $fixed !== $value)) {
+                return false;
             }
-
-            if ('' !== (string) $variation_attributes[$key]) {
-                $value = (string) $variation_attributes[$key];
-            } elseif (0 === strpos($key, 'attribute_pa_')) {
-                $value = sanitize_title((string) $value);
-            } else {
-                $value = sanitize_text_field((string) $value);
-            }
-
-            if ('' === $value) {
-                continue;
-            }
-
-            $clean[$key] = mb_substr($value, 0, 200);
+            // Preserve full option values, including UTF-8, without requiring mbstring.
+            $clean[$key] = $value;
         }
 
         ksort($clean);
