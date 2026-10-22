@@ -1,5 +1,5 @@
 /**
- * ListNest – "Add to list" buttons and confirmation dialog.
+ * ListNest - "Add to list" buttons and confirmation dialog.
  *
  * Vanilla JS. jQuery is used only to listen to WooCommerce variation events
  * (show_variation, hide_variation, reset_data), which are jQuery events.

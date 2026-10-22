@@ -26,8 +26,8 @@ if ( ! defined( 'ABSPATH' ) ) {
         </button>
         <h2 id="listnest-popup-title" class="listnest-popup__title"><?php esc_html_e( 'Product added to the list', 'listnest' ); ?></h2>
         <div class="listnest-popup__actions">
-            <button type="button" id="listnest-popup-btn1" class="button listnest-popup__button listnest-popup__secondary" data-listnest-close><?php esc_html_e( 'Continue shopping', 'listnest' ); ?></button>
-            <a href="#" id="listnest-popup-btn2" class="button listnest-popup__button listnest-popup__primary"><?php esc_html_e( 'Go to list', 'listnest' ); ?></a>
+            <button type="button" id="listnest-popup-btn1" class="<?php echo esc_attr( ListNest_Frontend::button_class( 'listnest-popup__button listnest-popup__secondary' ) ); ?>" data-listnest-close><?php esc_html_e( 'Continue shopping', 'listnest' ); ?></button>
+            <a href="#" id="listnest-popup-btn2" class="<?php echo esc_attr( ListNest_Frontend::button_class( 'listnest-popup__button listnest-popup__primary' ) ); ?>"><?php esc_html_e( 'Go to list', 'listnest' ); ?></a>
         </div>
     </div>
 </div>
