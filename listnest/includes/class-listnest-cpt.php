@@ -68,7 +68,34 @@ class ListNest_CPT {
         $popup_btn2_text = get_post_meta($post->ID, '_listnest_list_popup_btn2_text', true);
         $popup_btn2_page  = get_post_meta($post->ID, '_listnest_list_popup_btn2_page', true);
 
+        $auto_button  = get_post_meta($post->ID, '_listnest_list_auto_button', true);
+        $button_label = get_post_meta($post->ID, '_listnest_list_add_button_label', true);
+
         ?>
+        <p><strong><?php esc_html_e('"Add to list" button', 'listnest'); ?></strong></p>
+        <p>
+            <label>
+                <input type="checkbox" name="listnest_list_auto_button" value="1" <?php checked($auto_button, '1'); ?> />
+                <?php esc_html_e('Show button on product pages', 'listnest'); ?>
+            </label>
+        </p>
+        <p>
+            <label for="listnest_list_add_button_label"><?php esc_html_e('Button label:', 'listnest'); ?></label><br/>
+            <input type="text" name="listnest_list_add_button_label" id="listnest_list_add_button_label"
+                   placeholder="<?php esc_attr_e('Add to list', 'listnest'); ?>"
+                   value="<?php echo esc_attr($button_label); ?>" style="width: 300px;" />
+        </p>
+        <p class="description">
+            <?php
+            printf(
+                /* translators: %s: shortcode example */
+                esc_html__('To place the button anywhere else, use the shortcode %s.', 'listnest'),
+                '<code>[listnest_button list="' . esc_html($post->post_name ? $post->post_name : 'list-key') . '"]</code>'
+            );
+            ?>
+        </p>
+        <hr/>
+
         <p><strong><?php esc_html_e('Select an action after adding a product to this list:', 'listnest'); ?></strong></p>
         <p>
             <label>
@@ -203,6 +230,11 @@ class ListNest_CPT {
         $popup_btn2_text = isset($_POST['listnest_list_popup_btn2_text']) ? sanitize_text_field(wp_unslash($_POST['listnest_list_popup_btn2_text'])) : '';
         $popup_btn2_page = isset($_POST['listnest_list_popup_btn2_page']) ? $this->sanitize_page_id((int) wp_unslash($_POST['listnest_list_popup_btn2_page'])) : 0;
 
+        $auto_button  = (isset($_POST['listnest_list_auto_button']) && '1' === sanitize_key(wp_unslash($_POST['listnest_list_auto_button']))) ? '1' : '0';
+        $button_label = isset($_POST['listnest_list_add_button_label']) ? sanitize_text_field(wp_unslash($_POST['listnest_list_add_button_label'])) : '';
+
+        update_post_meta($post_id, '_listnest_list_auto_button', $auto_button);
+        update_post_meta($post_id, '_listnest_list_add_button_label', $button_label);
         update_post_meta($post_id, '_listnest_list_option', $option);
         update_post_meta($post_id, '_listnest_list_redirect_page', $redirect_page);
         update_post_meta($post_id, '_listnest_list_button_text', $button_text);

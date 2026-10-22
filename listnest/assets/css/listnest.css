@@ -1,36 +1,378 @@
-.listnest-add-button.listnest-loading {
-    pointer-events: none;
-    opacity: 0.6;
-    cursor: wait;
+/**
+ * ListNest front-end styles.
+ *
+ * Neutral by design: fonts and colours are inherited from the theme and
+ * buttons use the theme's .button styles. Customise through the custom
+ * properties below, e.g.:
+ *
+ *   .listnest { --listnest-accent: #0a6cbd; --listnest-radius: 0; }
+ */
+
+.listnest {
+    --listnest-accent: currentColor;
+    --listnest-radius: 4px;
+    --listnest-gap: 1rem;
+    --listnest-border: rgba(128, 128, 128, 0.35);
+    --listnest-muted-opacity: 0.75;
+    --listnest-success: #00701a;
+    --listnest-error: #b32d2e;
+    --listnest-focus: 2px solid var(--listnest-accent);
+    --listnest-overlay: rgba(0, 0, 0, 0.55);
+    --listnest-surface: #fff;
+    --listnest-surface-text: #1e1e1e;
+    --listnest-thumbnail-size: 64px;
+    --listnest-z-index: 100000;
 }
 
-.listnest-add-button.listnest-loading {
-    pointer-events: none;
-    opacity: 0.6;
-    cursor: wait;
-}
-
-.listnest-list-item {
-    display: flex;
-    align-items: center;
-}
-
-.listnest-product-attributes div {
-    font-size: 0.9rem;
-    color: #555;
-}
-
-.listnest-remove-btn {
+/* Fallback for themes that do not ship WordPress core's .screen-reader-text. */
+.listnest .screen-reader-text,
+.listnest-default-submit {
     border: 0;
-    background-color: #aaabaa;
-    width: 30px;
-    height: 30px;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
+    clip: rect(1px, 1px, 1px, 1px);
+    -webkit-clip-path: inset(50%);
+    clip-path: inset(50%);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute !important;
+    width: 1px;
+    word-wrap: normal !important;
+}
+
+.listnest a:focus-visible,
+.listnest button:focus-visible,
+.listnest input:focus-visible,
+.listnest-add-button:focus-visible {
+    outline: var(--listnest-focus);
+    outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------
+ * "Add to list" button
+ * ------------------------------------------------------------------ */
+
+.listnest-button-wrap {
+    display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
-    font-size: 14px;
-    line-height: normal;
-    min-width: 30px;
+    gap: 0.5em;
+    vertical-align: middle;
+}
+
+form.cart .listnest-button-wrap {
+    margin-inline-start: 0.5em;
+}
+
+.listnest-add-button.listnest-is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.listnest-add-button.listnest-loading {
+    position: relative;
+    opacity: 0.7;
+    cursor: wait;
+    pointer-events: none;
+}
+
+.listnest-add-button.listnest-loading::after {
+    content: "";
+    display: inline-block;
+    width: 0.9em;
+    height: 0.9em;
+    margin-inline-start: 0.5em;
+    vertical-align: -0.1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: listnest-spin 0.7s linear infinite;
+}
+
+.listnest-feedback {
+    font-size: 0.875em;
+}
+
+.listnest-feedback:empty {
+    display: none;
+}
+
+.listnest-feedback--success {
+    color: var(--listnest-success);
+}
+
+.listnest-feedback--error {
+    color: var(--listnest-error);
+}
+
+/* ------------------------------------------------------------------
+ * List table ([listnest list_key="..."])
+ * ------------------------------------------------------------------ */
+
+.listnest-notice {
+    margin: 0 0 var(--listnest-gap);
+    padding: 0.75em 1em;
+    border-inline-start: 4px solid var(--listnest-success);
+    border-radius: var(--listnest-radius);
+    background: rgba(128, 128, 128, 0.08);
+}
+
+.listnest-list__table {
+    width: 100%;
+    margin: 0 0 var(--listnest-gap);
+    border-collapse: collapse;
+}
+
+.listnest-list__table th,
+.listnest-list__table td {
+    padding: 0.75em 0.5em;
+    border-bottom: 1px solid var(--listnest-border);
+    text-align: start;
+    vertical-align: middle;
+}
+
+.listnest-list__table thead th {
+    font-weight: 600;
+}
+
+.listnest-list__col-image,
+.listnest-list__image {
+    width: var(--listnest-thumbnail-size);
+}
+
+.listnest-list__image img {
+    display: block;
+    width: var(--listnest-thumbnail-size);
+    height: auto;
+    max-width: none;
+    border-radius: var(--listnest-radius);
+}
+
+.listnest-list__name {
+    font-weight: 600;
+}
+
+.listnest-list__attributes {
+    margin: 0.25em 0 0;
+    font-size: 0.875em;
+    opacity: var(--listnest-muted-opacity);
+}
+
+.listnest-list__attribute dt,
+.listnest-list__attribute dd {
+    display: inline;
+    margin: 0;
+    font-weight: normal;
+}
+
+.listnest-list__col-quantity,
+.listnest-list__quantity {
+    width: 6em;
+}
+
+.listnest-list__qty {
+    width: 5em;
+    max-width: 100%;
+    text-align: center;
+}
+
+.listnest-list__col-remove,
+.listnest-list__remove {
+    width: 2.75em;
+    text-align: end;
+}
+
+.listnest-list__remove-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2em;
+    height: 2em;
+    padding: 0;
+    border: 1px solid var(--listnest-border);
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    font-size: 1.1em;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.listnest-list__remove-button:hover {
+    border-color: currentColor;
+    color: var(--listnest-error);
+}
+
+.listnest-list__actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Narrow screens: every item becomes a small card. */
+@media (max-width: 600px) {
+    .listnest-list__table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(1px, 1px, 1px, 1px);
+    }
+
+    .listnest-list__table,
+    .listnest-list__table tbody {
+        display: block;
+    }
+
+    .listnest-list__item {
+        display: grid;
+        grid-template-columns: var(--listnest-thumbnail-size) 1fr auto;
+        grid-template-areas:
+            "image product remove"
+            "image quantity remove";
+        gap: 0.5em 0.75em;
+        padding: 0.75em 0;
+        border-bottom: 1px solid var(--listnest-border);
+    }
+
+    .listnest-list__table td {
+        display: block;
+        width: auto;
+        padding: 0;
+        border: 0;
+    }
+
+    .listnest-list__image {
+        grid-area: image;
+    }
+
+    .listnest-list__product {
+        grid-area: product;
+    }
+
+    .listnest-list__quantity {
+        grid-area: quantity;
+    }
+
+    .listnest-list__remove {
+        grid-area: remove;
+        align-self: start;
+    }
+
+    .listnest-list__actions .button {
+        width: 100%;
+    }
+}
+
+/* ------------------------------------------------------------------
+ * Dialog
+ * ------------------------------------------------------------------ */
+
+.listnest-popup[hidden] {
+    display: none;
+}
+
+.listnest-popup {
+    position: fixed;
+    inset: 0;
+    z-index: var(--listnest-z-index);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.listnest-popup__backdrop {
+    position: absolute;
+    inset: 0;
+    background: var(--listnest-overlay);
+    animation: listnest-fade-in 0.2s ease-out;
+}
+
+.listnest-popup__dialog {
+    position: relative;
+    width: 100%;
+    max-width: 32rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    padding: 2.5rem 1.5rem 1.5rem;
+    border-radius: var(--listnest-radius);
+    background: var(--listnest-surface);
+    color: var(--listnest-surface-text);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    text-align: center;
+    animation: listnest-slide-in 0.2s ease-out;
+}
+
+.listnest-popup__dialog:focus {
+    outline: none;
+}
+
+.listnest-popup__title {
+    margin: 0 0 1.5rem;
+    font-size: 1.25em;
+    line-height: 1.3;
+    color: inherit;
+}
+
+.listnest-popup__close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.listnest-popup__close:hover {
+    background: rgba(128, 128, 128, 0.15);
+}
+
+.listnest-popup__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.listnest-popup__actions [hidden] {
+    display: none;
+}
+
+html.listnest-popup-open {
+    overflow: hidden;
+}
+
+@keyframes listnest-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes listnest-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes listnest-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .listnest-popup__backdrop,
+    .listnest-popup__dialog,
+    .listnest-add-button.listnest-loading::after {
+        animation: none;
+    }
 }

@@ -20,13 +20,14 @@ Plugin code lives in `listnest/`. Tick items (`[x]`) as they land.
 - [x] AJAX response no longer leaks full list contents
 
 ## Stage 3 – Front-end features, templates, styling
-- [ ] Automatic "Add to list" button on product page (per-list setting), plus `[listnest_button list="..."]`
-- [ ] Sends quantity; supports multiple buttons per page
-- [ ] "Change button text" option implemented
-- [ ] Theme-independent templates (no Bootstrap / company theme classes), product thumbnail, theme override `yourtheme/listnest/…`
-- [ ] Neutral CSS using custom properties (no brand colours)
-- [ ] Accessible popup (role=dialog, Esc, focus), no `alert()`
-- [ ] Attribute labels fixed in default template
+- [x] Automatic "Add to list" button on product page (per-list setting), plus `[listnest_button list="..."]`
+- [x] Sends quantity; supports multiple buttons per page
+- [x] "Change button text" option implemented
+- [x] Theme-independent templates (no Bootstrap / company theme classes), product thumbnail, theme override `yourtheme/listnest/…`
+- [x] Neutral CSS using custom properties (no brand colours)
+- [x] Accessible popup (role=dialog, Esc, focus), no `alert()`
+- [x] Attribute labels fixed in default template
+- [x] Assets and popup markup load only where needed; list page sets `DONOTCACHEPAGE`
 
 ## Stage 4 – Integrations, i18n, packaging
 - [ ] CF7 integration rewritten as class methods, loaded only when CF7 active, clears list after send

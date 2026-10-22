@@ -19,10 +19,19 @@ class ListNest_Shortcodes {
     private $storage;
 
     /**
-     * @param ListNest_Session $storage List storage.
+     * Front-end component (assets).
+     *
+     * @var ListNest_Frontend
      */
-    public function __construct(ListNest_Session $storage) {
-        $this->storage = $storage;
+    private $frontend;
+
+    /**
+     * @param ListNest_Session  $storage  List storage.
+     * @param ListNest_Frontend $frontend Front-end component.
+     */
+    public function __construct(ListNest_Session $storage, ListNest_Frontend $frontend) {
+        $this->storage  = $storage;
+        $this->frontend = $frontend;
     }
 
     /**
@@ -35,6 +44,14 @@ class ListNest_Shortcodes {
 
     /**
      * Shortcode: [listnest list_key="samples"]
+     *
+     * The list is personal (session based), so the page must not be served
+     * from a full-page cache: DONOTCACHEPAGE is defined while rendering.
+     * Headers are already sent at this point, so caching plugins that do
+     * not honour DONOTCACHEPAGE need the list page excluded manually.
+     *
+     * @param array|string $atts Shortcode attributes.
+     * @return string
      */
     public function render_list_shortcode($atts) {
         $atts = shortcode_atts(array(
@@ -46,8 +63,43 @@ class ListNest_Shortcodes {
             return '<p><strong>' . esc_html__('No list_key!', 'listnest') . '</strong></p>';
         }
 
-        $items         = $this->storage->get_list($list_key);
+        if (! defined('DONOTCACHEPAGE')) {
+            define('DONOTCACHEPAGE', true); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- Standard caching plugin constant.
+        }
+
         $template_path = $this->locate_list_template($list_key);
+        if ('' === $template_path) {
+            return '';
+        }
+
+        $this->frontend->enqueue_style();
+
+        // Variables available in the template (documented in templates/list-table.php).
+        $items        = $this->storage->get_list($list_key);
+        $rows         = $this->prepare_rows($items);
+        $max_quantity = $this->storage->get_max_quantity();
+        $nonce_action = self::NONCE_ACTION;
+        $nonce_field  = self::NONCE_FIELD;
+        $updated      = isset($_GET['listnest_list_updated']) && '1' === sanitize_key(wp_unslash($_GET['listnest_list_updated'])); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only flag set by our own redirect.
+
+        return $this->render_template($template_path, compact('list_key', 'items', 'rows', 'max_quantity', 'nonce_action', 'nonce_field', 'updated'));
+    }
+
+    /**
+     * Includes a template with an explicit, whitelisted set of variables.
+     *
+     * @param string $template_path Absolute template path.
+     * @param array  $vars          Variables (list_key, items, rows, max_quantity, nonce_action, nonce_field, updated).
+     * @return string
+     */
+    private function render_template($template_path, array $vars) {
+        $list_key     = isset($vars['list_key']) ? $vars['list_key'] : '';
+        $items        = isset($vars['items']) ? $vars['items'] : array();
+        $rows         = isset($vars['rows']) ? $vars['rows'] : array();
+        $max_quantity = isset($vars['max_quantity']) ? $vars['max_quantity'] : 1;
+        $nonce_action = isset($vars['nonce_action']) ? $vars['nonce_action'] : self::NONCE_ACTION;
+        $nonce_field  = isset($vars['nonce_field']) ? $vars['nonce_field'] : self::NONCE_FIELD;
+        $updated      = ! empty($vars['updated']);
 
         ob_start();
         include $template_path;
@@ -55,28 +107,120 @@ class ListNest_Shortcodes {
     }
 
     /**
-     * Resolves the list table template: templates/{list_key}-list-table.php
-     * when it exists, otherwise templates/list-table.php. The resolved path
-     * must stay inside the plugin templates directory.
+     * Resolves the list table template. First match wins:
+     *  1. {child theme}/listnest/{list_key}-list-table.php
+     *  2. {child theme}/listnest/list-table.php
+     *  3. {parent theme}/listnest/{list_key}-list-table.php
+     *  4. {parent theme}/listnest/list-table.php
+     *  5. {plugin}/templates/{list_key}-list-table.php
+     *  6. {plugin}/templates/list-table.php
+     * The result can be changed with the listnest_locate_template filter.
      *
      * @param string $list_key Sanitized list key.
-     * @return string Absolute template path.
+     * @return string Absolute template path, or '' when none exists.
      */
     private function locate_list_template($list_key) {
-        $templates_dir = realpath(LISTNEST_PATH . 'templates');
-        $default       = LISTNEST_PATH . 'templates/list-table.php';
-        $list_key      = sanitize_key($list_key);
-
-        if ('' === $list_key || false === $templates_dir) {
-            return $default;
+        $list_key = sanitize_key($list_key);
+        $names    = array('list-table.php');
+        if ('' !== $list_key) {
+            array_unshift($names, $list_key . '-list-table.php');
         }
 
-        $candidate = realpath($templates_dir . DIRECTORY_SEPARATOR . $list_key . '-list-table.php');
-        if (false !== $candidate && 0 === strpos($candidate, $templates_dir . DIRECTORY_SEPARATOR) && is_file($candidate)) {
-            return $candidate;
+        return ListNest_Template::locate($names, $list_key);
+    }
+
+    /**
+     * Prepares display data for each list item. Items whose product no
+     * longer exists are skipped.
+     *
+     * Each row: item_key, product (variation or simple product), parent
+     * (parent/simple product), name, permalink ('' when the product is not
+     * visible), image (HTML), attributes (list of array( label, value )),
+     * quantity.
+     *
+     * @param array $items Stored list items.
+     * @return array
+     */
+    private function prepare_rows($items) {
+        $rows = array();
+
+        foreach ((array) $items as $item_key => $data) {
+            if (! is_array($data)) {
+                continue;
+            }
+
+            $product_id   = isset($data['product_id']) ? absint($data['product_id']) : 0;
+            $variation_id = isset($data['variation_id']) ? absint($data['variation_id']) : 0;
+            $parent       = $product_id ? wc_get_product($product_id) : false;
+            $product      = $variation_id ? wc_get_product($variation_id) : $parent;
+
+            if (! $product) {
+                continue;
+            }
+            if (! $parent) {
+                $parent = $product;
+            }
+
+            $stored = (! empty($data['attributes']) && is_array($data['attributes'])) ? $data['attributes'] : array();
+
+            $rows[] = array(
+                'item_key'   => (string) $item_key,
+                'product'    => $product,
+                'parent'     => $parent,
+                'name'       => $parent->get_name(),
+                'permalink'  => $parent->is_visible() ? $product->get_permalink() : '',
+                'image'      => $product->get_image('woocommerce_thumbnail'),
+                'attributes' => $this->get_attribute_rows($product, $parent, $stored),
+                'quantity'   => isset($data['quantity']) ? max(1, absint($data['quantity'])) : 1,
+            );
         }
 
-        return $default;
+        return $rows;
+    }
+
+    /**
+     * Human readable attributes of a list item.
+     *
+     * Values fixed on the variation are merged with the values chosen by
+     * the customer ("any" attributes). Labels come from wc_attribute_label()
+     * and taxonomy values are resolved to term names.
+     *
+     * @param WC_Product $product Variation or simple product.
+     * @param WC_Product $parent  Parent product.
+     * @param array      $stored  Stored attributes (attribute_* => value).
+     * @return array List of array( 'label' => string, 'value' => string ).
+     */
+    private function get_attribute_rows($product, $parent, array $stored) {
+        $values = array();
+        if ($product->is_type('variation')) {
+            $values = $product->get_variation_attributes();
+        }
+        foreach ($stored as $key => $value) {
+            if (is_string($key) && is_scalar($value) && '' !== (string) $value) {
+                $values[$key] = (string) $value;
+            }
+        }
+
+        $rows = array();
+        foreach ($values as $key => $value) {
+            if ('' === (string) $value) {
+                continue;
+            }
+
+            $name = (0 === strpos($key, 'attribute_')) ? substr($key, strlen('attribute_')) : $key;
+
+            if (taxonomy_exists($name)) {
+                $term  = get_term_by('slug', $value, $name);
+                $value = ($term && ! is_wp_error($term)) ? $term->name : $value;
+            }
+
+            $rows[] = array(
+                'label' => wc_attribute_label($name, $parent),
+                'value' => (string) $value,
+            );
+        }
+
+        return $rows;
     }
 
     /**

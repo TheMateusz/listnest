@@ -1,49 +1,46 @@
 <?php
-
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Prints the confirmation dialog (templates/popup.php) in the footer, only
+ * on pages where the button script is loaded and at least one list uses
+ * the popup option.
+ */
 class ListNest_Popup {
+
+    /**
+     * @var ListNest_Frontend
+     */
+    private $frontend;
+
+    /**
+     * @param ListNest_Frontend $frontend Front-end component.
+     */
+    public function __construct( ListNest_Frontend $frontend ) {
+        $this->frontend = $frontend;
+    }
 
     /**
      * Registers hooks. Called once by ListNest_Plugin.
      */
     public function register_hooks() {
-        add_action('wp_footer', array($this, 'render_popup_template'));
-        add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
+        // Before footer scripts are printed (priority 20).
+        add_action( 'wp_footer', array( $this, 'render_popup_template' ), 15 );
     }
 
     /**
-     * Wyświetla HTML pop-upu w `wp_footer`
+     * Prints the dialog markup when needed.
      */
     public function render_popup_template() {
-        ?>
-        <div id="listnest-popup-modal" class="listnest-popup hidden">
-            <div class="listnest-popup-content">
-                <h5 id="listnest-popup-title" class="mb-4 mb-lg-6"><?php esc_html_e('Popup title', 'listnest'); ?></h5>
-                <div id="listnest-popup-buttons" class="d-flex gap-5 gap-10 justify-content-center align-items-center">
-                    <a href="#" id="listnest-popup-btn1" class="listnest-popup-btn listnest-popup-close">
-                        <?php esc_html_e('Close', 'listnest'); ?>
-                    </a>
-                    <a href="#" id="listnest-popup-btn2" class="button button--outline button--mini">
-                        <?php esc_html_e('Go to list', 'listnest'); ?>
-                    </a>
-                </div>
-            </div>
-        </div>
-        <?php
-    }
+        if ( ! $this->frontend->is_script_needed() || ! $this->frontend->has_popup_lists() ) {
+            return;
+        }
 
-    /**
-     * Rejestruje i enqueue’uje plik CSS dla pop-upu
-     */
-    public function enqueue_styles() {
-        wp_enqueue_style(
-            'listnest-popup-style',
-            LISTNEST_URL . 'assets/css/listnest-popup.css',
-            array(),
-            LISTNEST_VERSION
-        );
+        $template = ListNest_Template::locate( 'popup.php' );
+        if ( '' !== $template ) {
+            include $template;
+        }
     }
 }

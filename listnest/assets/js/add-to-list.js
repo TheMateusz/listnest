@@ -1,134 +1,429 @@
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof ListNestConfig === 'undefined' || !ListNestConfig.lists) {
-        console.error('ListNestConfig nie jest zdefiniowane. Sprawdź wp_localize_script.');
+/**
+ * ListNest – "Add to list" buttons and confirmation dialog.
+ *
+ * Vanilla JS. jQuery is used only to listen to WooCommerce variation events
+ * (show_variation, hide_variation, reset_data), which are jQuery events.
+ *
+ * Every .listnest-add-button works independently: buttons inside a
+ * WooCommerce product form read the selected variation, attributes and
+ * quantity from that form; other buttons use their data attributes only.
+ *
+ * Dispatches a bubbling "listnest:added" CustomEvent on the button after a
+ * successful request (detail: listKey, productId, variationId, quantity, response).
+ */
+(function () {
+    'use strict';
+
+    var config = window.ListNestConfig;
+    if (!config || !config.lists) {
         return;
     }
-    const button = document.querySelector('.listnest-add-button');
-    if (!button) return;
 
-    jQuery(document).on('found_variation', 'form.variations_form', function(event, variation) {
-        updateProductAttributes(variation);
-    });
+    var i18n = config.i18n || {};
+    var BUTTON_SELECTOR = '.listnest-add-button';
+    var DISABLED_CLASS = 'listnest-is-disabled';
+    var LOADING_CLASS = 'listnest-loading';
 
-    jQuery(document).on('reset_data', 'form.variations_form', function() {
-        updateProductAttributes(null);
-    });
+    /* ------------------------------------------------------------------
+     * Helpers
+     * ------------------------------------------------------------------ */
 
-    function updateProductAttributes(variation) {
-        let selectedAttributes = {};
-        if (variation) {
-            Object.keys(variation.attributes).forEach(key => {
-                selectedAttributes[key] = variation.attributes[key];
-            });
+    function getFeedbackElement(button) {
+        var wrap = button.closest('.listnest-button-wrap');
+        var el = wrap ? wrap.querySelector('.listnest-feedback') : null;
 
-            button.setAttribute('data-variation-id', variation.variation_id);
-        } else {
-            button.removeAttribute('data-variation-id');
+        if (!el) {
+            el = document.createElement('span');
+            el.className = 'listnest-feedback';
+            el.setAttribute('role', 'status');
+            el.setAttribute('aria-live', 'polite');
+            button.insertAdjacentElement('afterend', el);
         }
-
-        button.setAttribute('data-product-attrs', JSON.stringify(selectedAttributes));
+        return el;
     }
 
-    document.addEventListener('click', function(e) {
-        let btn = e.target.closest('.listnest-add-button');
-        if (!btn) return;
+    function showFeedback(button, message, type) {
+        var el = getFeedbackElement(button);
+        el.classList.remove('listnest-feedback--success', 'listnest-feedback--error');
+        if (type) {
+            el.classList.add('listnest-feedback--' + type);
+        }
+        el.textContent = message || '';
+    }
 
-        e.preventDefault();
+    function clearFeedback(button) {
+        var wrap = button.closest('.listnest-button-wrap');
+        var el = wrap ? wrap.querySelector('.listnest-feedback') : null;
+        if (el) {
+            el.textContent = '';
+            el.classList.remove('listnest-feedback--success', 'listnest-feedback--error');
+        }
+    }
 
-        btn.disabled = true;
-        btn.classList.add('listnest-loading');
+    function setLoading(button, loading) {
+        button.classList.toggle(LOADING_CLASS, loading);
+        if (loading) {
+            button.setAttribute('aria-busy', 'true');
+        } else {
+            button.removeAttribute('aria-busy');
+        }
+    }
 
-        const listnestType  = btn.dataset.listnestType;
-        const productId = parseInt(btn.dataset.productId) || 0;
-        const variationId = parseInt(btn.dataset.variationId) || 0;
-        const productAttrs = btn.dataset.productAttrs ? JSON.parse(btn.dataset.productAttrs) : {};
+    /**
+     * Enables or disables (aria-disabled, so the button stays focusable and
+     * can explain why it is disabled) every button inside a variations form.
+     */
+    function setFormButtonsEnabled(form, enabled) {
+        if (!form) {
+            return;
+        }
+        form.querySelectorAll(BUTTON_SELECTOR).forEach(function (button) {
+            button.classList.toggle(DISABLED_CLASS, !enabled);
+            if (enabled) {
+                button.removeAttribute('aria-disabled');
+                clearFeedback(button);
+            } else {
+                button.setAttribute('aria-disabled', 'true');
+            }
+        });
+    }
 
-        if (!listnestType || !productId) {
-            alert('Brak wymaganych danych.');
-            resetButton(btn);
+    function getSelectedVariationId(form) {
+        var input = form.querySelector('input[name="variation_id"]');
+        return input ? parseInt(input.value, 10) || 0 : 0;
+    }
+
+    function getSelectedAttributes(form) {
+        var attributes = {};
+        form.querySelectorAll('[name^="attribute_"]').forEach(function (field) {
+            if ((field.type === 'radio' || field.type === 'checkbox') && !field.checked) {
+                return;
+            }
+            if (field.value) {
+                attributes[field.name] = field.value;
+            }
+        });
+        return attributes;
+    }
+
+    function getQuantity(button) {
+        var form = button.closest('form');
+        var input = form ? form.querySelector('input.qty') : null;
+        var quantity = input ? parseInt(input.value, 10) : parseInt(button.getAttribute('data-quantity'), 10);
+        return quantity > 0 ? quantity : 1;
+    }
+
+    function syncVariationForms() {
+        document.querySelectorAll('form.variations_form').forEach(function (form) {
+            if (form.querySelector(BUTTON_SELECTOR)) {
+                setFormButtonsEnabled(form, getSelectedVariationId(form) > 0);
+            }
+        });
+    }
+
+    /* ------------------------------------------------------------------
+     * Dialog
+     * ------------------------------------------------------------------ */
+
+    var Popup = (function () {
+        var root = null;
+        var dialog = null;
+        var lastTrigger = null;
+        var FOCUSABLE = 'a[href]:not([hidden]), button:not([disabled]):not([hidden]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+        function isOpen() {
+            return root !== null && !root.hidden;
+        }
+
+        function focusableElements() {
+            return Array.prototype.filter.call(dialog.querySelectorAll(FOCUSABLE), function (el) {
+                return el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0;
+            });
+        }
+
+        function close() {
+            if (!isOpen()) {
+                return;
+            }
+            root.hidden = true;
+            root.classList.remove('is-open');
+            document.documentElement.classList.remove('listnest-popup-open');
+
+            if (lastTrigger && document.body.contains(lastTrigger)) {
+                lastTrigger.focus();
+            }
+            lastTrigger = null;
+        }
+
+        function onKeydown(event) {
+            if (!isOpen()) {
+                return;
+            }
+
+            if (event.key === 'Escape' || event.key === 'Esc') {
+                event.preventDefault();
+                close();
+                return;
+            }
+
+            if (event.key !== 'Tab') {
+                return;
+            }
+
+            // Keep keyboard focus inside the dialog.
+            var focusable = focusableElements();
+            if (!focusable.length) {
+                event.preventDefault();
+                dialog.focus();
+                return;
+            }
+
+            var first = focusable[0];
+            var last = focusable[focusable.length - 1];
+
+            if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        }
+
+        function init() {
+            root = document.getElementById('listnest-popup');
+            if (!root) {
+                return;
+            }
+            dialog = root.querySelector('[role="dialog"]');
+
+            // Listeners are attached once; the dialog is reused for every list.
+            root.addEventListener('click', function (event) {
+                if (event.target.closest('[data-listnest-close]')) {
+                    event.preventDefault();
+                    close();
+                }
+            });
+            document.addEventListener('keydown', onKeydown);
+        }
+
+        function open(data, trigger) {
+            if (!root) {
+                return false;
+            }
+            data = data || {};
+
+            var title = root.querySelector('#listnest-popup-title');
+            var secondary = root.querySelector('#listnest-popup-btn1');
+            var primary = root.querySelector('#listnest-popup-btn2');
+
+            if (title && data.title) {
+                title.textContent = data.title;
+            }
+            if (secondary && data.btn1Text) {
+                secondary.textContent = data.btn1Text;
+            }
+            if (primary) {
+                if (data.btn2Url) {
+                    primary.textContent = data.btn2Text || primary.textContent;
+                    primary.setAttribute('href', data.btn2Url);
+                    primary.hidden = false;
+                } else {
+                    primary.hidden = true;
+                }
+            }
+
+            lastTrigger = trigger || document.activeElement;
+            root.hidden = false;
+            root.classList.add('is-open');
+            document.documentElement.classList.add('listnest-popup-open');
+
+            var target = (primary && !primary.hidden) ? primary : (secondary || dialog);
+            target.focus();
+            return true;
+        }
+
+        return { init: init, open: open, close: close };
+    })();
+
+    /* ------------------------------------------------------------------
+     * Success behaviours
+     * ------------------------------------------------------------------ */
+
+    /**
+     * "change_text": the button becomes a link to the configured page with
+     * the configured text. Without a page, only the text changes.
+     */
+    function changeButton(button, listConfig, message) {
+        var text = listConfig.buttonText || '';
+
+        if (!listConfig.buttonUrl) {
+            if (text) {
+                button.textContent = text;
+            }
+            showFeedback(button, message, 'success');
             return;
         }
 
-        const listConfig = ListNestConfig.lists[listnestType];
-        if (!listConfig) {
-            console.error(`Nie znaleziono konfiguracji dla: ${listnestType}`, ListNestConfig.lists);
-            alert('Błąd konfiguracji listy.');
-            resetButton(btn);
+        var link = document.createElement('a');
+        link.href = listConfig.buttonUrl;
+        link.className = button.className;
+        link.classList.remove('listnest-add-button', DISABLED_CLASS, LOADING_CLASS);
+        link.classList.add('listnest-view-list');
+        link.textContent = text || button.textContent;
+
+        var hadFocus = document.activeElement === button;
+        button.parentNode.replaceChild(link, button);
+        showFeedback(link, message, 'success');
+        if (hadFocus) {
+            link.focus();
+        }
+    }
+
+    function handleSuccess(button, listKey, listConfig, response) {
+        var message = (response && response.message) || i18n.added || '';
+
+        switch (listConfig.option) {
+            case 'redirect':
+                if (listConfig.redirectUrl) {
+                    window.location.href = listConfig.redirectUrl;
+                    return;
+                }
+                showFeedback(button, message, 'success');
+                break;
+
+            case 'popup':
+                clearFeedback(button);
+                if (!Popup.open(listConfig.popup, button)) {
+                    showFeedback(button, message, 'success');
+                }
+                break;
+
+            case 'change_text':
+                changeButton(button, listConfig, message);
+                break;
+
+            default:
+                showFeedback(button, message, 'success');
+        }
+    }
+
+    /* ------------------------------------------------------------------
+     * Click handler
+     * ------------------------------------------------------------------ */
+
+    function onButtonClick(event) {
+        var button = event.target.closest(BUTTON_SELECTOR);
+        if (!button || button.tagName !== 'BUTTON') {
+            return;
+        }
+        event.preventDefault();
+
+        if (button.classList.contains(LOADING_CLASS)) {
             return;
         }
 
-        const postData = new URLSearchParams();
-        postData.append('action', 'listnest_add_to_list');
-        postData.append('security', ListNestConfig.nonce);
-        postData.append('list_key', listnestType);
-        postData.append('product_id', productId);
+        var listKey = button.getAttribute('data-listnest-type') || '';
+        var productId = parseInt(button.getAttribute('data-product-id'), 10) || 0;
+        var listConfig = config.lists[listKey];
+
+        if (!listKey || !productId || !listConfig) {
+            showFeedback(button, i18n.unknownList || i18n.error, 'error');
+            return;
+        }
+
+        var variationId = parseInt(button.getAttribute('data-variation-id'), 10) || 0;
+        var attributes = {};
+        var variationsForm = button.closest('form.variations_form');
+
+        if (variationsForm) {
+            variationId = getSelectedVariationId(variationsForm);
+            if (!variationId) {
+                showFeedback(button, i18n.selectOptions, 'error');
+                return;
+            }
+            attributes = getSelectedAttributes(variationsForm);
+        }
+
+        var quantity = getQuantity(button);
+
+        var body = new URLSearchParams();
+        body.append('action', config.action || 'listnest_add_to_list');
+        body.append('security', config.nonce);
+        body.append('list_key', listKey);
+        body.append('product_id', String(productId));
         if (variationId) {
-            postData.append('variation_id', variationId);
+            body.append('variation_id', String(variationId));
         }
-        postData.append('attributes', JSON.stringify(productAttrs));
+        body.append('quantity', String(quantity));
+        body.append('attributes', JSON.stringify(attributes));
 
-        fetch(ListNestConfig.ajaxurl, {
+        setLoading(button, true);
+        showFeedback(button, i18n.adding || '', '');
+
+        fetch(config.ajaxUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
             credentials: 'same-origin',
-            body: postData
+            body: body
         })
-            .then(response => response.json().catch(() => Promise.reject(`Błąd: ${response.status}`)))
-            .then(data => {
-                if (data.success) {
-                    if (listConfig.option === 'redirect' && listConfig.redirect_url) {
-                        window.location.href = listConfig.redirect_url;
-                    } else if (listConfig.option === 'popup') {
-                        showListNestPopup(listConfig.popup);
-                    }
-                } else {
-                    alert(data.data?.message || 'Błąd AJAX.');
-                }
+            .then(function (response) {
+                return response.json().catch(function () {
+                    return { success: false, data: { message: i18n.error } };
+                });
             })
-            .catch(err => console.error('Fetch error:', err))
-            .finally(() => {
-                resetButton(btn);
+            .then(function (result) {
+                setLoading(button, false);
+
+                if (!result || !result.success) {
+                    var message = result && result.data && result.data.message ? result.data.message : i18n.error;
+                    showFeedback(button, message, 'error');
+                    return;
+                }
+
+                button.dispatchEvent(new CustomEvent('listnest:added', {
+                    bubbles: true,
+                    detail: {
+                        listKey: listKey,
+                        productId: productId,
+                        variationId: variationId,
+                        quantity: quantity,
+                        response: result.data
+                    }
+                }));
+
+                handleSuccess(button, listKey, listConfig, result.data);
+            })
+            .catch(function () {
+                setLoading(button, false);
+                showFeedback(button, i18n.networkError || i18n.error, 'error');
             });
-    });
-
-    function resetButton(btn) {
-        btn.disabled = false;
-        btn.classList.remove('listnest-loading');
     }
 
-    function showListNestPopup(popupData) {
-        const popup = document.getElementById('listnest-popup-modal');
-        if (!popup) {
-            console.error('Nie znaleziono szablonu popupu.');
-            return;
-        }
+    /* ------------------------------------------------------------------
+     * WooCommerce variation events (jQuery events), bound immediately so
+     * events fired during WooCommerce's own initialisation are not missed.
+     * ------------------------------------------------------------------ */
 
-        document.getElementById('listnest-popup-title').textContent = popupData.title || 'Informacja';
-
-        const btn1 = document.getElementById('listnest-popup-btn1');
-        if (popupData.btn1Text) {
-            btn1.textContent = popupData.btn1Text;
-            btn1.href = popupData.btn1Url || '#';
-            btn1.style.display = 'inline-block';
-        } else {
-            btn1.style.display = 'none';
-        }
-
-        const btn2 = document.getElementById('listnest-popup-btn2');
-        if (popupData.btn2Text) {
-            btn2.textContent = popupData.btn2Text;
-            btn2.href = popupData.btn2Url || '#';
-            btn2.style.display = 'inline-block';
-        } else {
-            btn2.style.display = 'none';
-        }
-
-        popup.classList.add('show');
-
-        document.querySelector('.listnest-popup-close').addEventListener('click', (e) => {
-            e.preventDefault();
-            popup.classList.remove('show');
-        })
+    if (window.jQuery) {
+        window.jQuery(document)
+            .on('show_variation', 'form.variations_form', function () {
+                setFormButtonsEnabled(this, true);
+            })
+            .on('hide_variation reset_data', 'form.variations_form', function () {
+                setFormButtonsEnabled(this, false);
+            });
     }
 
-});
+    function init() {
+        Popup.init();
+        syncVariationForms();
+        document.addEventListener('click', onButtonClick);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
