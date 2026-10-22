@@ -34,10 +34,30 @@ class ListNest_Frontend {
      * Registers hooks. Called once by ListNest_Plugin.
      */
     public function register_hooks() {
+        add_action( 'template_redirect', array( $this, 'protect_personal_pages' ), 0 );
         add_action( 'wp_enqueue_scripts', array( $this, 'register_assets' ), 5 );
         add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_assets' ) );
         add_action( 'woocommerce_after_add_to_cart_button', array( $this, 'render_auto_buttons' ) );
         add_shortcode( 'listnest_button', array( $this, 'render_button_shortcode' ) );
+    }
+
+    /** Prevent browser/proxy caching before personalized markup is sent. */
+    public function protect_personal_pages() {
+        $post = is_singular() ? get_post() : null;
+        if ( ! $post || ! is_string( $post->post_content ) ) {
+            return;
+        }
+        $personal = has_shortcode( $post->post_content, 'listnest' ) || has_shortcode( $post->post_content, 'listnest_form' );
+        if ( ! $personal && has_shortcode( $post->post_content, 'contact-form-7' ) ) {
+            // CF7 may render a session-based summary stored in a separate form post.
+            $personal = true;
+        }
+        if ( $personal ) {
+            if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+                define( 'DONOTCACHEPAGE', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- Cache plugin convention.
+            }
+            nocache_headers();
+        }
     }
 
     /**
@@ -225,10 +245,7 @@ class ListNest_Frontend {
          */
         $label = (string) apply_filters( 'listnest_button_label', $lists[ $list_key ]['button_label'], $list_key, $product );
 
-        $classes = array( 'button', 'listnest-add-button' );
-        if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
-            $classes[] = 'wp-element-button';
-        }
+        $classes = explode( ' ', self::button_class( 'listnest-add-button' ) );
 
         /**
          * Filters the button CSS classes.
@@ -243,6 +260,42 @@ class ListNest_Frontend {
         ob_start();
         include $template;
         return ob_get_clean();
+    }
+
+    /**
+     * URL to return to after handling a front-end form (Post/Redirect/Get).
+     *
+     * wp_get_referer() returns false when the form posts to its own URL, so
+     * the raw referer is validated instead (same host only).
+     *
+     * @param string[] $remove_args Query args to strip.
+     * @return string
+     */
+    public static function get_return_url( array $remove_args = array() ) {
+        $url = wp_validate_redirect( (string) wp_get_raw_referer(), '' );
+        if ( '' === $url ) {
+            $url = home_url( '/' );
+        }
+        return remove_query_arg( $remove_args, $url );
+    }
+
+    /**
+     * CSS classes for buttons rendered by the plugin: the classic theme
+     * "button" class plus "wp-element-button" in block themes, so the
+     * theme's button styles apply in both.
+     *
+     * @param string $extra Additional classes (space separated).
+     * @return string Escaped for use in a class attribute.
+     */
+    public static function button_class( $extra = '' ) {
+        $classes = array( 'button' );
+        if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+            $classes[] = 'wp-element-button';
+        }
+        foreach ( explode( ' ', (string) $extra ) as $class ) {
+            $classes[] = $class;
+        }
+        return implode( ' ', array_filter( array_map( 'sanitize_html_class', $classes ) ) );
     }
 
     /**
