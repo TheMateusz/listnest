@@ -15,61 +15,61 @@ msgstr ""
 "X-Generator: Loco https://localise.biz/\n"
 "X-Loco-Version: 2.7.1; wp-6.7.2"
 
-#: includes/class-vwcl-cpt.php:96
+#: includes/class-listnest-cpt.php:96
 msgid "- Choose a side -"
 msgstr "- Wybierz stronę -"
 
-#: includes/class-vwcl-cpt.php:22
+#: includes/class-listnest-cpt.php:22
 msgid "Add New List"
 msgstr "Dodaj nową listę"
 
-#: includes/class-vwcl-ajax.php:71
+#: includes/class-listnest-ajax.php:71
 msgid "Add to list"
 msgstr "Dodaj do listy"
 
-#: includes/class-vwcl-cpt.php:21
+#: includes/class-listnest-cpt.php:21
 msgid "All Lists"
 msgstr "Wszystkie listy"
 
-#: includes/class-vwcl-cpt.php:106
+#: includes/class-listnest-cpt.php:106
 msgid "Button text:"
 msgstr "Tekst przycisku:"
 
-#: includes/class-vwcl-cpt.php:112 includes/class-vwcl-cpt.php:145
+#: includes/class-listnest-cpt.php:112 includes/class-listnest-cpt.php:145
 msgid "Button URL:"
 msgstr "Adres URL przycisku:"
 
-#: includes/class-vwcl-cpt.php:79
+#: includes/class-listnest-cpt.php:79
 msgid "Change the button to your own text, and when clicked, move to the list"
 msgstr "Zmień tekst przycisku na własny, a po kliknięciu przejdź do listy"
 
-#: includes/class-vwcl-ajax.php:75 includes/class-vwcl-cpt.php:134
-#: includes/class-vwcl-popup.php:24
+#: includes/class-listnest-ajax.php:75 includes/class-listnest-cpt.php:134
+#: includes/class-listnest-popup.php:24
 msgid "Close"
-msgstr "Dodaj kolejne próbniki"
+msgstr "Zamknij"
 
-#: includes/class-vwcl-cpt.php:131
+#: includes/class-listnest-cpt.php:131
 msgid "Closing button text:"
 msgstr "Tekst przycisku zamykającego:"
 
-#: includes/class-vwcl-cpt.php:23
+#: includes/class-listnest-cpt.php:23
 msgid "Edit List"
 msgstr "Edytuj listę"
 
-#: includes/class-vwcl-ajax.php:76 includes/class-vwcl-cpt.php:142
-#: includes/class-vwcl-popup.php:27
+#: includes/class-listnest-ajax.php:76 includes/class-listnest-cpt.php:142
+#: includes/class-listnest-popup.php:27
 msgid "Go to list"
-msgstr "Przejdź do zamówienia"
+msgstr "Przejdź do listy"
 
-#: includes/class-vwcl-cpt.php:19
+#: includes/class-listnest-cpt.php:19
 msgid "List"
 msgstr "Lista"
 
-#: includes/class-vwcl-cpt.php:46
+#: includes/class-listnest-cpt.php:46
 msgid "List options"
 msgstr "Opcje listy"
 
-#: includes/class-vwcl-cpt.php:18 includes/class-vwcl-cpt.php:20
+#: includes/class-listnest-cpt.php:18 includes/class-listnest-cpt.php:20
 msgid "Lists"
 msgstr "Listy"
 
@@ -77,91 +77,91 @@ msgstr "Listy"
 msgid "Mateusz Matusiak"
 msgstr "Mateusz Matusiak"
 
-#: includes/class-vwcl-cpt.php:24
+#: includes/class-listnest-cpt.php:24
 msgid "New List"
 msgstr "Nowa lista"
 
-#: templates/list-table.php:59 templates/zapytanie-list-table.php:76
+#: templates/list-table.php:59
 msgid "No"
 msgstr "Nie"
 
-#: includes/class-vwcl-shortcodes.php:18
+#: includes/class-listnest-shortcodes.php:18
 msgid "No list_key!"
 msgstr "Brak klucza listy!"
 
-#: includes/class-vwcl-cpt.php:27
+#: includes/class-listnest-cpt.php:27
 msgid "No lists found"
 msgstr "Nie znaleziono list"
 
-#: templates/list-table.php:14 templates/zapytanie-list-table.php:14
+#: templates/list-table.php:14
 msgid "No products on the list."
 msgstr "Brak produktów na liście."
 
-#: includes/class-vwcl-cpt.php:120
+#: includes/class-listnest-cpt.php:120
 msgid "Popup settings:"
 msgstr "Ustawienia wyskakującego okna:"
 
-#: includes/class-vwcl-ajax.php:74 includes/class-vwcl-cpt.php:127
-#: includes/class-vwcl-popup.php:21
+#: includes/class-listnest-ajax.php:74 includes/class-listnest-cpt.php:127
+#: includes/class-listnest-popup.php:21
 msgid "Popup title"
-msgstr "Próbnik dodany do zamówienia"
+msgstr "Produkt dodany do listy"
 
-#: includes/class-vwcl-cpt.php:123
+#: includes/class-listnest-cpt.php:123
 msgid "Popup title:"
 msgstr "Tytuł wyskakującego okna:"
 
-#: templates/list-table.php:24 templates/zapytanie-list-table.php:24
+#: templates/list-table.php:24
 msgid "PRODUCT"
 msgstr "PRODUKT"
 
-#: templates/list-table.php:27 templates/zapytanie-list-table.php:27
+#: templates/list-table.php:27
 msgid "QUANTITY"
 msgstr "ILOŚĆ"
 
-#: includes/class-vwcl-cpt.php:74
+#: includes/class-listnest-cpt.php:74
 msgid "Redirect to the page of your choice"
 msgstr "Przekierowanie na wybraną stronę"
 
-#: includes/class-vwcl-cpt.php:90
+#: includes/class-listnest-cpt.php:90
 msgid "Redirection settings"
 msgstr "Ustawienia przekierowania"
 
-#: includes/class-vwcl-cpt.php:26
+#: includes/class-listnest-cpt.php:26
 msgid "Search Lists"
 msgstr "Szukaj list"
 
-#: includes/class-vwcl-cpt.php:108
+#: includes/class-listnest-cpt.php:108
 msgid "See list"
 msgstr "Zobacz listę"
 
-#: includes/class-vwcl-cpt.php:69
+#: includes/class-listnest-cpt.php:69
 msgid "Select an action after adding a product to this list:"
 msgstr "Wybierz akcję po dodaniu produktu do tej listy:"
 
-#: includes/class-vwcl-cpt.php:104
+#: includes/class-listnest-cpt.php:104
 msgid "Settings for changing the button text:"
 msgstr "Ustawienia zmiany tekstu przycisku:"
 
-#: includes/class-vwcl-cpt.php:139
+#: includes/class-listnest-cpt.php:139
 msgid "The text of the button to go to the list:"
 msgstr "Tekst przycisku do przejścia na listę:"
 
-#: templates/list-table.php:74 templates/zapytanie-list-table.php:91
+#: templates/list-table.php:74
 msgid "Update the list"
 msgstr "Zaktualizuj listę"
 
 #. Name of the plugin
-msgid "Venti WC Custom List"
-msgstr "Venti WC Custom List"
+msgid "ListNest"
+msgstr "ListNest"
 
-#: includes/class-vwcl-cpt.php:25
+#: includes/class-listnest-cpt.php:25
 msgid "View List"
 msgstr "Zobacz listę"
 
-#: includes/class-vwcl-cpt.php:84
+#: includes/class-listnest-cpt.php:84
 msgid "View popup"
 msgstr "Zobacz wyskakujące okno"
 
 #. Description of the plugin
-msgid "Wtyczka tworząca system list produktów z obsługą AJAX i shortcodem."
-msgstr "Wtyczka tworząca system list produktów z obsługą AJAX i shortcodem."
+msgid "Let customers collect products into custom lists — quote requests, samples, wishlists — and send them through Contact Form 7."
+msgstr "Pozwala klientom zbierać produkty na własnych listach — zapytania ofertowe, próbki, listy życzeń — i wysyłać je przez Contact Form 7."

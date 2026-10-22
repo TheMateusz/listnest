@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
-    if (typeof VWCLConfig === 'undefined' || !VWCLConfig.lists) {
-        console.error('VWCLConfig nie jest zdefiniowane. Sprawdź wp_localize_script.');
+    if (typeof ListNestConfig === 'undefined' || !ListNestConfig.lists) {
+        console.error('ListNestConfig nie jest zdefiniowane. Sprawdź wp_localize_script.');
         return;
     }
-    const button = document.querySelector('.vwcl-add-button');
+    const button = document.querySelector('.lnst-add-button');
     if (!button) return;
 
     jQuery(document).on('found_variation', 'form.variations_form', function(event, variation) {
@@ -32,40 +32,40 @@ document.addEventListener('DOMContentLoaded', function() {
     button.dataset.originalProductId = button.dataset.productId;
 
     document.addEventListener('click', function(e) {
-        let btn = e.target.closest('.vwcl-add-button');
+        let btn = e.target.closest('.lnst-add-button');
         if (!btn) return;
 
         e.preventDefault();
 
         btn.disabled = true;
-        btn.classList.add('vwcl-loading');
+        btn.classList.add('lnst-loading');
 
-        const vwclType  = btn.dataset.vwclType;
+        const lnstType  = btn.dataset.lnstType;
         const productId = parseInt(btn.dataset.productId) || 0;
         const productAttrs = btn.dataset.productAttrs ? JSON.parse(btn.dataset.productAttrs) : {};
 
-        if (!vwclType || !productId) {
+        if (!lnstType || !productId) {
             alert('Brak wymaganych danych.');
             resetButton(btn);
             return;
         }
 
-        const listConfig = VWCLConfig.lists[vwclType];
+        const listConfig = ListNestConfig.lists[lnstType];
         if (!listConfig) {
-            console.error(`Nie znaleziono konfiguracji dla: ${vwclType}`, VWCLConfig.lists);
+            console.error(`Nie znaleziono konfiguracji dla: ${lnstType}`, ListNestConfig.lists);
             alert('Błąd konfiguracji listy.');
             resetButton(btn);
             return;
         }
 
         const postData = new URLSearchParams();
-        postData.append('action', 'vwcl_add_to_list');
-        postData.append('security', VWCLConfig.nonce);
-        postData.append('list_key', vwclType);
+        postData.append('action', 'lnst_add_to_list');
+        postData.append('security', ListNestConfig.nonce);
+        postData.append('list_key', lnstType);
         postData.append('product_id', productId);
         postData.append('attributes', JSON.stringify(productAttrs));
 
-        fetch(VWCLConfig.ajaxurl, {
+        fetch(ListNestConfig.ajaxurl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
             credentials: 'same-origin',
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (listConfig.option === 'redirect' && listConfig.redirect_url) {
                         window.location.href = listConfig.redirect_url;
                     } else if (listConfig.option === 'popup') {
-                        showVWCLPopup(listConfig.popup);
+                        showListNestPopup(listConfig.popup);
                     }
                 } else {
                     alert(data.data?.message || 'Błąd AJAX.');
@@ -91,19 +91,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function resetButton(btn) {
         btn.disabled = false;
-        btn.classList.remove('vwcl-loading');
+        btn.classList.remove('lnst-loading');
     }
 
-    function showVWCLPopup(popupData) {
-        const popup = document.getElementById('vwcl-popup-modal');
+    function showListNestPopup(popupData) {
+        const popup = document.getElementById('lnst-popup-modal');
         if (!popup) {
             console.error('Nie znaleziono szablonu popupu.');
             return;
         }
 
-        document.getElementById('vwcl-popup-title').textContent = popupData.title || 'Informacja';
+        document.getElementById('lnst-popup-title').textContent = popupData.title || 'Informacja';
 
-        const btn1 = document.getElementById('vwcl-popup-btn1');
+        const btn1 = document.getElementById('lnst-popup-btn1');
         if (popupData.btn1Text) {
             btn1.textContent = popupData.btn1Text;
             btn1.href = popupData.btn1Url || '#';
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
             btn1.style.display = 'none';
         }
 
-        const btn2 = document.getElementById('vwcl-popup-btn2');
+        const btn2 = document.getElementById('lnst-popup-btn2');
         if (popupData.btn2Text) {
             btn2.textContent = popupData.btn2Text;
             btn2.href = popupData.btn2Url || '#';
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         popup.classList.add('show');
 
-        document.querySelector('.vwcl-popup-close').addEventListener('click', (e) => {
+        document.querySelector('.lnst-popup-close').addEventListener('click', (e) => {
             e.preventDefault();
             popup.classList.remove('show');
         })

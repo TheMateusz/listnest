@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     function toggleFields() {
-        const selected = document.querySelector('input[name="vwcl_list_option"]:checked');
+        const selected = document.querySelector('input[name="lnst_list_option"]:checked');
         if (!selected) return;
 
         const val = selected.value;
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         popupFields.style.display = (val === 'popup') ? 'block' : 'none';
     }
 
-    const radios = document.querySelectorAll('input[name="vwcl_list_option"]');
+    const radios = document.querySelectorAll('input[name="lnst_list_option"]');
     radios.forEach(radio => {
         radio.addEventListener('change', toggleFields);
     });

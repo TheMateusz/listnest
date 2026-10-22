@@ -3,28 +3,28 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Vwcl_CF7 {
+class ListNest_CF7 {
 
     public function __construct() {
 
 
-        add_action('wpcf7_init', 'my_cf7_add_product_list_tag');
-        function my_cf7_add_product_list_tag()
+        add_action('wpcf7_init', 'lnst_cf7_add_product_list_tag');
+        function lnst_cf7_add_product_list_tag()
         {
-            wpcf7_add_form_tag('my_products_list', 'my_cf7_product_list_callback', array('name-attr' => true));
+            wpcf7_add_form_tag('listnest_products', 'lnst_cf7_product_list_callback', array('name-attr' => true));
         }
 
-        function my_cf7_product_list_callback($tag = null)
+        function lnst_cf7_product_list_callback($tag = null)
         {
-            if (!empty($_POST['get_product_list'])) {
-                $list_key = sanitize_text_field($_POST['get_product_list']);
+            if (!empty($_POST['lnst_cf7_list'])) {
+                $list_key = sanitize_text_field($_POST['lnst_cf7_list']);
 
                 if (session_status() === PHP_SESSION_NONE) {
                     session_start();
                 }
 
-                if (!empty($_SESSION['vwcl_lists'][$list_key])) {
-                    $items = $_SESSION['vwcl_lists'][$list_key];
+                if (!empty($_SESSION['lnst_lists'][$list_key])) {
+                    $items = $_SESSION['lnst_lists'][$list_key];
 
                     $products_message = "<br><strong>Rodzaj listy: (" . esc_html($list_key) . "):</strong><br>";
                     $products_message .= "<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%; max-width: 500px;'>";
@@ -73,11 +73,11 @@ class Vwcl_CF7 {
         }
 
 
-        add_filter('wpcf7_special_mail_tags', 'my_cf7_special_mail_tag_my_products_list', 10, 3);
-        function my_cf7_special_mail_tag_my_products_list($output, $name, $html)
+        add_filter('wpcf7_special_mail_tags', 'lnst_cf7_special_mail_tag', 10, 3);
+        function lnst_cf7_special_mail_tag($output, $name, $html)
         {
-            if ($name === 'my_products_list') {
-                return my_cf7_product_list_callback();
+            if ($name === 'listnest_products') {
+                return lnst_cf7_product_list_callback();
             }
             return $output;
         }

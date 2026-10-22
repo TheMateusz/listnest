@@ -1,26 +1,26 @@
-.vwcl-add-button.vwcl-loading {
+.lnst-add-button.lnst-loading {
     pointer-events: none;
     opacity: 0.6;
     cursor: wait;
 }
 
-.vwcl-add-button.vwcl-loading {
+.lnst-add-button.lnst-loading {
     pointer-events: none;
     opacity: 0.6;
     cursor: wait;
 }
 
-.venti-list-item {
+.lnst-list-item {
     display: flex;
     align-items: center;
 }
 
-.venti-product-attributes div {
+.lnst-product-attributes div {
     font-size: 0.9rem;
     color: #555;
 }
 
-.venti-remove-btn {
+.lnst-remove-btn {
     border: 0;
     background-color: #aaabaa;
     width: 30px;

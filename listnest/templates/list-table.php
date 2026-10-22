@@ -9,22 +9,22 @@
  */
 ?>
 
-<div class="venti-list-wrapper">
+<div class="lnst-list-wrapper">
     <?php if (empty($items)) : ?>
-        <p class="text-muted"><?php esc_html_e('No products on the list.', 'venti-wc-custom-list'); ?></p>
+        <p class="text-muted"><?php esc_html_e('No products on the list.', 'listnest'); ?></p>
     <?php else : ?>
         <form method="post">
-            <input type="hidden" name="vwcl_list_key" value="<?php echo esc_attr($list_key); ?>" />
+            <input type="hidden" name="lnst_list_key" value="<?php echo esc_attr($list_key); ?>" />
 
-            <div class="venti-list">
+            <div class="lnst-list">
 
-                <div class="col-12 d-flex align-items-center border-bottom border-top py-3 venti-list-item">
+                <div class="col-12 d-flex align-items-center border-bottom border-top py-3 lnst-list-item">
                     <div class="mx-3 mx-lg-6" style="width: 30px;"></div>
                     <div class="flex-grow-1 fw-semibold">
-                        <?php esc_html_e('PRODUCT', 'venti-wc-custom-list'); ?>
+                        <?php esc_html_e('PRODUCT', 'listnest'); ?>
                     </div>
                     <div class="fw-semibold d-flex justify-content-center" style="min-width: 80px">
-                        <?php esc_html_e('QUANTITY', 'venti-wc-custom-list'); ?>
+                        <?php esc_html_e('QUANTITY', 'listnest'); ?>
                     </div>
                 </div>
 
@@ -39,13 +39,13 @@
                         continue;
                     }
                     ?>
-                    <div class="col-12 d-flex align-items-center border-bottom py-3 venti-list-item">
-                        <button type="submit" name="vwcl_remove_item" value="<?php echo esc_attr($item_key); ?>" class="me-3 venti-remove-btn mx-3 mx-lg-6">✖</button>
+                    <div class="col-12 d-flex align-items-center border-bottom py-3 lnst-list-item">
+                        <button type="submit" name="lnst_remove_item" value="<?php echo esc_attr($item_key); ?>" class="me-3 lnst-remove-btn mx-3 mx-lg-6">✖</button>
                         <div class="flex-grow-1">
-                            <p class="fw-bold mb-1 venti-product-name"><?php echo esc_html($product->get_name()); ?></p>
+                            <p class="fw-bold mb-1 lnst-product-name"><?php echo esc_html($product->get_name()); ?></p>
 
                             <?php if ($attributes) : ?>
-                                <div class="venti-product-attributes">
+                                <div class="lnst-product-attributes">
                                     <?php foreach ($attributes as $attr_k => $attr_v) :
                                         $attribute_name = wc_attribute_label($attr_k);
                                         $term = get_term_by('slug', $attr_v, $attr_k);
@@ -56,13 +56,13 @@
                                     <?php endforeach; ?>
                                 </div>
                             <?php else : ?>
-                                <em class="text-muted"><?php esc_html_e('No', 'venti-wc-custom-list'); ?></em>
+                                <em class="text-muted"><?php esc_html_e('No', 'listnest'); ?></em>
                             <?php endif; ?>
                         </div>
                         <div>
                             <input type="number"
                                    class="form-control text-center"
-                                   name="vwcl_items[<?php echo esc_attr($item_key); ?>][quantity]"
+                                   name="lnst_items[<?php echo esc_attr($item_key); ?>][quantity]"
                                    value="<?php echo esc_attr($quantity); ?>"
                                    min="0" style="width: 80px;" />
                         </div>
@@ -71,7 +71,7 @@
             </div>
 
             <div class="d-flex justify-content-end border-bottom py-2 py-lg-4">
-                <button type="submit" class="button button--outline button--mini" name="vwcl_update_list" value="1"><?php esc_html_e('Update the list', 'venti-wc-custom-list'); ?></button>
+                <button type="submit" class="button button--outline button--mini" name="lnst_update_list" value="1"><?php esc_html_e('Update the list', 'listnest'); ?></button>
             </div>
         </form>
     <?php endif; ?>

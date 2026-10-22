@@ -1,4 +1,4 @@
-.vwcl-popup {
+.lnst-popup {
     position: fixed;
     top: 0;
     left: 0;
@@ -15,12 +15,12 @@
     overflow: hidden;
 }
 
-.vwcl-popup.show {
+.lnst-popup.show {
     visibility: visible;
     opacity: 1;
 }
 
-.vwcl-popup-content {
+.lnst-popup-content {
     background: white;
     padding: 60px 20px;
     text-align: center;
@@ -38,18 +38,18 @@
     flex-direction: column;
 }
 
-.vwcl-popup-btn{
+.lnst-popup-btn{
     font-size: 14px;
     color: #23c872 !important;
     font-weight: 600;
 }
 
 
-.vwcl-popup-btn:hover{
+.lnst-popup-btn:hover{
     text-decoration: underline;
 }
 
-.vwcl-popup.show .vwcl-popup-content {
+.lnst-popup.show .lnst-popup-content {
     opacity: 1;
     transform: translateY(0);
 }
