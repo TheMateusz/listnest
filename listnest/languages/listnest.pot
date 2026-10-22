@@ -1,0 +1,319 @@
+# Copyright (C) 2026 Mateusz Matusiak
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: ListNest 0.1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/listnest\n"
+"POT-Creation-Date: 2026-09-29 20:29+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Domain: listnest\n"
+
+#. Plugin Name of the plugin
+#: listnest.php
+msgid "ListNest"
+msgstr ""
+
+#. Description of the plugin
+#: listnest.php
+msgid "Let customers collect products into custom lists — quote requests, samples, wishlists — and send them through Contact Form 7."
+msgstr ""
+
+#. Author of the plugin
+#: listnest.php
+msgid "Mateusz Matusiak"
+msgstr ""
+
+#: includes/class-listnest-ajax.php:67
+msgid "Your session has expired. Please reload the page and try again."
+msgstr ""
+
+#: includes/class-listnest-ajax.php:84
+msgid "This list does not exist."
+msgstr ""
+
+#: includes/class-listnest-ajax.php:92
+msgid "This product cannot be added to the list."
+msgstr ""
+
+#: includes/class-listnest-ajax.php:110
+msgid "The list is full. Remove some products before adding new ones."
+msgstr ""
+
+#: includes/class-listnest-ajax.php:121
+msgid "The list could not be saved. Please try again."
+msgstr ""
+
+#: includes/class-listnest-ajax.php:125
+#: includes/class-listnest-frontend.php:364
+msgid "Added to the list."
+msgstr ""
+
+#. translators: %s: form tag example
+#: includes/class-listnest-cf7.php:113
+#, php-format
+msgid "ListNest: this form tag needs the key of a published list, e.g. %s."
+msgstr ""
+
+#: includes/class-listnest-cf7.php:135 includes/class-listnest-cf7.php:261
+#: includes/class-listnest-cf7.php:316 templates/list-table.php:43
+msgid "No products on the list."
+msgstr ""
+
+#. translators: %s: quantity
+#: includes/class-listnest-cf7.php:144
+#, php-format
+msgid "× %s"
+msgstr ""
+
+#: includes/class-listnest-cf7.php:202
+msgid "Your list is empty. Add at least one product before sending the form."
+msgstr ""
+
+#. translators: %s: list name
+#: includes/class-listnest-cf7.php:254 includes/class-listnest-cf7.php:310
+#, php-format
+msgid "List: %s"
+msgstr ""
+
+#: includes/class-listnest-cf7.php:269 includes/class-listnest-cf7.php:329
+#: templates/list-table.php:56
+msgid "Product"
+msgstr ""
+
+#: includes/class-listnest-cf7.php:270 includes/class-listnest-cf7.php:330
+msgid "Attributes"
+msgstr ""
+
+#: includes/class-listnest-cf7.php:271 includes/class-listnest-cf7.php:331
+#: templates/list-table.php:57
+msgid "Quantity"
+msgstr ""
+
+#: includes/class-listnest-cf7.php:275 includes/class-listnest-cf7.php:323
+msgid "Unknown product"
+msgstr ""
+
+#: includes/class-listnest-cf7.php:278 includes/class-listnest-cf7.php:326
+msgid "No attributes"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:26 includes/class-listnest-cpt.php:28
+msgid "Lists"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:27
+msgid "List"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:29
+msgid "All Lists"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:30
+msgid "Add New List"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:31
+msgid "Edit List"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:32
+msgid "New List"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:33
+msgid "View List"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:34
+msgid "Search Lists"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:35
+msgid "No lists found"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:54
+msgid "List options"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:80
+msgid "\"Add to list\" button"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:84
+msgid "Show button on product pages"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:88
+msgid "Button label:"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:90 includes/class-listnest-frontend.php:292
+msgid "Add to list"
+msgstr ""
+
+#. translators: %s: shortcode example
+#: includes/class-listnest-cpt.php:97
+#, php-format
+msgid "To place the button anywhere else, use the shortcode %s."
+msgstr ""
+
+#: includes/class-listnest-cpt.php:104
+msgid "Select an action after adding a product to this list:"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:109
+msgid "Redirect to the page of your choice"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:114
+msgid "Replace the button with a link to a page of your choice (e.g. the list), using your own text"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:119
+msgid "Show a confirmation popup"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:125 includes/class-listnest-cpt.php:146
+#: includes/class-listnest-cpt.php:186
+msgid "Target page:"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:131 includes/class-listnest-cpt.php:152
+#: includes/class-listnest-cpt.php:192
+msgid "— Select a page —"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:139
+msgid "Link button settings:"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:141
+msgid "Button text:"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:143 includes/class-listnest-frontend.php:294
+msgid "See list"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:160
+msgid "Popup settings:"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:163
+msgid "Popup title:"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:167 includes/class-listnest-frontend.php:297
+#: templates/popup.php:27
+msgid "Product added to the list"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:171
+msgid "Closing button text:"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:174 includes/class-listnest-frontend.php:298
+#: templates/popup.php:29
+msgid "Continue shopping"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:179
+msgid "\"Go to list\" button text:"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:182 includes/class-listnest-frontend.php:299
+#: templates/popup.php:30
+msgid "Go to list"
+msgstr ""
+
+#: includes/class-listnest-cpt.php:199
+msgid "Leave text fields empty to use the default, translatable text."
+msgstr ""
+
+#. translators: %s: shortcode example
+#: includes/class-listnest-cpt.php:205
+#, php-format
+msgid "To display the list, use the shortcode %s."
+msgstr ""
+
+#. translators: 1: Contact Form 7 form tag, 2: Contact Form 7 mail tag
+#: includes/class-listnest-cpt.php:214
+#, php-format
+msgid "Contact Form 7: add %1$s to the form and %2$s to the mail body."
+msgstr ""
+
+#: includes/class-listnest-frontend.php:365
+msgid "The product could not be added to the list. Please try again."
+msgstr ""
+
+#: includes/class-listnest-frontend.php:366
+msgid "Connection error. Please check your connection and try again."
+msgstr ""
+
+#: includes/class-listnest-frontend.php:367
+msgid "This list is not available."
+msgstr ""
+
+#: includes/class-listnest-frontend.php:368
+msgid "Please select product options before adding this product to the list."
+msgstr ""
+
+#: includes/class-listnest-frontend.php:369
+msgid "Adding to the list…"
+msgstr ""
+
+#: includes/class-listnest-plugin.php:112
+msgid "ListNest requires WooCommerce to be installed and active. Front-end list features are disabled until WooCommerce is activated."
+msgstr ""
+
+#: includes/class-listnest-shortcodes.php:66
+msgid "ListNest: the list_key shortcode attribute is missing."
+msgstr ""
+
+#: includes/class-listnest-shortcodes.php:148
+msgid "Your session has expired. Please go back, reload the page and try again."
+msgstr ""
+
+#: includes/class-listnest-shortcodes.php:149
+msgid "List not updated"
+msgstr ""
+
+#: templates/list-table.php:39
+msgid "The list has been updated."
+msgstr ""
+
+#: templates/list-table.php:50 templates/list-table.php:122
+msgid "Update list"
+msgstr ""
+
+#: templates/list-table.php:55
+msgid "Image"
+msgstr ""
+
+#: templates/list-table.php:58
+msgid "Remove"
+msgstr ""
+
+#. translators: %s: product name
+#: templates/list-table.php:94
+#, php-format
+msgid "Quantity of %s"
+msgstr ""
+
+#. translators: %s: product name
+#: templates/list-table.php:112
+#, php-format
+msgid "Remove %s"
+msgstr ""
+
+#: templates/popup.php:24
+msgid "Close dialog"
+msgstr ""

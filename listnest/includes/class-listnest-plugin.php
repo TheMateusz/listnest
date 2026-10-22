@@ -67,6 +67,7 @@ final class ListNest_Plugin {
         require_once LISTNEST_PATH . 'includes/class-listnest-session.php';
         require_once LISTNEST_PATH . 'includes/class-listnest-ajax.php';
         require_once LISTNEST_PATH . 'includes/class-listnest-template.php';
+        require_once LISTNEST_PATH . 'includes/class-listnest-item.php';
         require_once LISTNEST_PATH . 'includes/class-listnest-frontend.php';
         require_once LISTNEST_PATH . 'includes/class-listnest-shortcodes.php';
         require_once LISTNEST_PATH . 'includes/class-listnest-popup.php';
@@ -88,7 +89,8 @@ final class ListNest_Plugin {
             $this->components['ajax']       = new ListNest_Ajax( $storage );
             $this->components['shortcodes'] = new ListNest_Shortcodes( $storage, $frontend );
             $this->components['popup']      = new ListNest_Popup( $frontend );
-            $this->components['cf7']        = new ListNest_CF7( $storage );
+            // Hooks into Contact Form 7 only when CF7 is active (on wpcf7_init).
+            $this->components['cf7']        = new ListNest_CF7( $storage, $frontend );
         } else {
             add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) );
         }

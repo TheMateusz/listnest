@@ -355,11 +355,12 @@ class ListNest_Frontend {
         }
 
         $config = array(
-            'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-            'action'  => 'listnest_add_to_list',
-            'nonce'   => wp_create_nonce( ListNest_Ajax::NONCE_ACTION ),
-            'lists'   => $lists,
-            'i18n'    => array(
+            'ajaxUrl'            => admin_url( 'admin-ajax.php' ),
+            'action'             => 'listnest_add_to_list',
+            'nonceRefreshAction' => 'listnest_refresh_nonce',
+            'nonce'              => wp_create_nonce( ListNest_Ajax::NONCE_ACTION ),
+            'lists'              => $lists,
+            'i18n'               => array(
                 'added'         => __( 'Added to the list.', 'listnest' ),
                 'error'         => __( 'The product could not be added to the list. Please try again.', 'listnest' ),
                 'networkError'  => __( 'Connection error. Please check your connection and try again.', 'listnest' ),

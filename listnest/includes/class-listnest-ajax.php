@@ -3,6 +3,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * AJAX endpoints: add to list and nonce refresh.
+ */
 class ListNest_Ajax {
 
     /**
@@ -30,6 +33,23 @@ class ListNest_Ajax {
     public function register_hooks() {
         add_action('wp_ajax_listnest_add_to_list', array($this, 'ajax_add_to_list'));
         add_action('wp_ajax_nopriv_listnest_add_to_list', array($this, 'ajax_add_to_list'));
+        add_action('wp_ajax_listnest_refresh_nonce', array($this, 'ajax_refresh_nonce'));
+        add_action('wp_ajax_nopriv_listnest_refresh_nonce', array($this, 'ajax_refresh_nonce'));
+    }
+
+    /**
+     * AJAX handler: returns a fresh add-to-list nonce.
+     *
+     * Pages served from a full-page cache can carry an expired nonce (or one
+     * created for a different user). The script requests a new one once
+     * after an "invalid_nonce" error and retries the request. The nonce only
+     * protects the public add-to-list action, so handing it out is safe.
+     */
+    public function ajax_refresh_nonce() {
+        nocache_headers();
+        wp_send_json_success(array(
+            'nonce' => wp_create_nonce(self::NONCE_ACTION),
+        ));
     }
 
     /**
@@ -40,8 +60,12 @@ class ListNest_Ajax {
      */
     public function ajax_add_to_list() {
         if (! check_ajax_referer(self::NONCE_ACTION, 'security', false)) {
+            // The "invalid_nonce" code lets the script fetch a fresh nonce and retry once.
             wp_send_json_error(
-                array('message' => __('Your session has expired. Please reload the page and try again.', 'listnest')),
+                array(
+                    'code'    => 'invalid_nonce',
+                    'message' => __('Your session has expired. Please reload the page and try again.', 'listnest'),
+                ),
                 403
             );
         }

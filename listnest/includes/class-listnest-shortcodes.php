@@ -3,6 +3,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * [listnest] shortcode (list table) and the list update form handler.
+ */
 class ListNest_Shortcodes {
 
     /**
@@ -60,7 +63,7 @@ class ListNest_Shortcodes {
 
         $list_key = sanitize_key($atts['list_key']);
         if (empty($list_key)) {
-            return '<p><strong>' . esc_html__('No list_key!', 'listnest') . '</strong></p>';
+            return '<p><strong>' . esc_html__('ListNest: the list_key shortcode attribute is missing.', 'listnest') . '</strong></p>';
         }
 
         if (! defined('DONOTCACHEPAGE')) {
@@ -76,7 +79,7 @@ class ListNest_Shortcodes {
 
         // Variables available in the template (documented in templates/list-table.php).
         $items        = $this->storage->get_list($list_key);
-        $rows         = $this->prepare_rows($items);
+        $rows         = ListNest_Item::prepare_rows($items);
         $max_quantity = $this->storage->get_max_quantity();
         $nonce_action = self::NONCE_ACTION;
         $nonce_field  = self::NONCE_FIELD;
@@ -127,100 +130,6 @@ class ListNest_Shortcodes {
         }
 
         return ListNest_Template::locate($names, $list_key);
-    }
-
-    /**
-     * Prepares display data for each list item. Items whose product no
-     * longer exists are skipped.
-     *
-     * Each row: item_key, product (variation or simple product), parent
-     * (parent/simple product), name, permalink ('' when the product is not
-     * visible), image (HTML), attributes (list of array( label, value )),
-     * quantity.
-     *
-     * @param array $items Stored list items.
-     * @return array
-     */
-    private function prepare_rows($items) {
-        $rows = array();
-
-        foreach ((array) $items as $item_key => $data) {
-            if (! is_array($data)) {
-                continue;
-            }
-
-            $product_id   = isset($data['product_id']) ? absint($data['product_id']) : 0;
-            $variation_id = isset($data['variation_id']) ? absint($data['variation_id']) : 0;
-            $parent       = $product_id ? wc_get_product($product_id) : false;
-            $product      = $variation_id ? wc_get_product($variation_id) : $parent;
-
-            if (! $product) {
-                continue;
-            }
-            if (! $parent) {
-                $parent = $product;
-            }
-
-            $stored = (! empty($data['attributes']) && is_array($data['attributes'])) ? $data['attributes'] : array();
-
-            $rows[] = array(
-                'item_key'   => (string) $item_key,
-                'product'    => $product,
-                'parent'     => $parent,
-                'name'       => $parent->get_name(),
-                'permalink'  => $parent->is_visible() ? $product->get_permalink() : '',
-                'image'      => $product->get_image('woocommerce_thumbnail'),
-                'attributes' => $this->get_attribute_rows($product, $parent, $stored),
-                'quantity'   => isset($data['quantity']) ? max(1, absint($data['quantity'])) : 1,
-            );
-        }
-
-        return $rows;
-    }
-
-    /**
-     * Human readable attributes of a list item.
-     *
-     * Values fixed on the variation are merged with the values chosen by
-     * the customer ("any" attributes). Labels come from wc_attribute_label()
-     * and taxonomy values are resolved to term names.
-     *
-     * @param WC_Product $product Variation or simple product.
-     * @param WC_Product $parent  Parent product.
-     * @param array      $stored  Stored attributes (attribute_* => value).
-     * @return array List of array( 'label' => string, 'value' => string ).
-     */
-    private function get_attribute_rows($product, $parent, array $stored) {
-        $values = array();
-        if ($product->is_type('variation')) {
-            $values = $product->get_variation_attributes();
-        }
-        foreach ($stored as $key => $value) {
-            if (is_string($key) && is_scalar($value) && '' !== (string) $value) {
-                $values[$key] = (string) $value;
-            }
-        }
-
-        $rows = array();
-        foreach ($values as $key => $value) {
-            if ('' === (string) $value) {
-                continue;
-            }
-
-            $name = (0 === strpos($key, 'attribute_')) ? substr($key, strlen('attribute_')) : $key;
-
-            if (taxonomy_exists($name)) {
-                $term  = get_term_by('slug', $value, $name);
-                $value = ($term && ! is_wp_error($term)) ? $term->name : $value;
-            }
-
-            $rows[] = array(
-                'label' => wc_attribute_label($name, $parent),
-                'value' => (string) $value,
-            );
-        }
-
-        return $rows;
     }
 
     /**

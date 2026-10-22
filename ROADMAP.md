@@ -30,11 +30,12 @@ Plugin code lives in `listnest/`. Tick items (`[x]`) as they land.
 - [x] Assets and popup markup load only where needed; list page sets `DONOTCACHEPAGE`
 
 ## Stage 4 – Integrations, i18n, packaging
-- [ ] CF7 integration rewritten as class methods, loaded only when CF7 active, clears list after send
-- [ ] All user-facing strings English + translatable (PHP & JS); all code comments English
-- [ ] Remove Loco/Polish admin text; regenerate `languages/listnest.pot` and update `listnest-pl_PL.po/.mo`
-- [ ] `uninstall.php`
-- [ ] `readme.txt` in WordPress.org format
+- [x] CF7 integration rewritten as class methods, loaded only when CF7 active, clears list after send
+- [x] All user-facing strings English + translatable (PHP & JS); all code comments English
+- [x] Remove Loco/Polish admin text; regenerate `languages/listnest.pot` and update `listnest-pl_PL.po/.mo`
+- [x] `uninstall.php`
+- [x] `readme.txt` in WordPress.org format
+- [x] Stale nonce on cached pages: `listnest_refresh_nonce` AJAX action, script refreshes and retries once
 
 ## Stage 5 – Testing
 - [ ] Local WP + WooCommerce + CF7 (XAMPP), `WP_DEBUG` clean

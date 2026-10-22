@@ -1,9 +1,48 @@
 <?php
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Contact Form 7 integration.
+ *
+ * Form tag:  [listnest_products list:my-list]
+ *            Renders a hidden field carrying the list key plus a read-only
+ *            summary of the visitor's list. Submitting the form with an
+ *            empty list fails validation (filter: listnest_cf7_require_items).
+ *
+ * Mail tag:  [listnest_products]
+ *            Inserts the list into the mail body: an HTML table when the
+ *            mail uses HTML content type, a plain-text listing otherwise.
+ *
+ * After the mail has been sent, the list is cleared
+ * (filter: listnest_cf7_clear_after_send).
+ *
+ * Backward compatibility: forms without the form tag may still carry the
+ * list key in a hidden field named "listnest_cf7_list"; the mail tag and
+ * the clearing then use that value.
+ *
+ * Hooks are only registered on wpcf7_init, i.e. when Contact Form 7 is active.
+ *
+ * Session note: CF7 submits through the REST API, where WooCommerce does not
+ * load its session by default, so load_session() is called before every
+ * read. For logged-in users the REST request is only authenticated when it
+ * carries a valid wp_rest nonce; if that nonce is missing or stale (e.g. a
+ * cached form page), WordPress treats the request as a guest, WooCommerce
+ * ignores the user's session cookie and the list appears empty. To be
+ * verified in Stage 5 testing (guest and logged-in, with and without page cache).
+ */
 class ListNest_CF7 {
+
+    /**
+     * Form tag and mail tag name.
+     */
+    const TAG = 'listnest_products';
+
+    /**
+     * Hidden field carrying the list key (also accepted from older forms).
+     */
+    const FIELD = 'listnest_cf7_list';
 
     /**
      * List storage.
@@ -13,123 +52,457 @@ class ListNest_CF7 {
     private $storage;
 
     /**
-     * @param ListNest_Session $storage List storage.
+     * Front-end component (assets), optional.
+     *
+     * @var ListNest_Frontend|null
      */
-    public function __construct(ListNest_Session $storage) {
-        $this->storage = $storage;
+    private $frontend;
+
+    /**
+     * @param ListNest_Session       $storage  List storage.
+     * @param ListNest_Frontend|null $frontend Front-end component, used to enqueue the stylesheet.
+     */
+    public function __construct( ListNest_Session $storage, $frontend = null ) {
+        $this->storage  = $storage;
+        $this->frontend = ( $frontend instanceof ListNest_Frontend ) ? $frontend : null;
     }
 
     /**
-     * Returns the list storage.
+     * Registers hooks. Called once by ListNest_Plugin.
      *
-     * @return ListNest_Session
-     */
-    public function get_storage() {
-        return $this->storage;
-    }
-
-    /**
-     * Registers hooks. Called once by ListNest_Plugin (the nested function
-     * declarations below would fatal if this ran twice).
-     *
-     * The nested functions cannot use $this; they reach the injected storage
-     * through ListNest_Plugin::instance()->get_component('cf7')->get_storage().
-     * Stage 4 rewrites them as class methods.
+     * wpcf7_init only fires when Contact Form 7 is active, so nothing else
+     * is hooked on sites without CF7.
      */
     public function register_hooks() {
+        add_action( 'wpcf7_init', array( $this, 'register_cf7_hooks' ) );
+    }
 
-        add_action('wpcf7_init', 'listnest_cf7_add_product_list_tag');
-        function listnest_cf7_add_product_list_tag()
-        {
-            wpcf7_add_form_tag('listnest_products', 'listnest_cf7_product_list_callback', array('name-attr' => true));
+    /**
+     * Registers the form tag, mail tag, validation and post-send handlers.
+     */
+    public function register_cf7_hooks() {
+        if ( function_exists( 'wpcf7_add_form_tag' ) ) {
+            wpcf7_add_form_tag( self::TAG, array( $this, 'render_form_tag' ) );
         }
 
-        function listnest_cf7_product_list_callback($tag = null)
-        {
-            // CF7 verifies its own submission; this only reads the visitor's own list.
-            if (empty($_POST['listnest_cf7_list'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        add_filter( 'wpcf7_validate_' . self::TAG, array( $this, 'validate_form_tag' ), 10, 2 );
+        add_filter( 'wpcf7_special_mail_tags', array( $this, 'render_mail_tag' ), 10, 3 );
+        add_action( 'wpcf7_mail_sent', array( $this, 'clear_after_send' ) );
+    }
+
+    /* ------------------------------------------------------------------
+     * Form tag
+     * ------------------------------------------------------------------ */
+
+    /**
+     * Renders [listnest_products list:my-list] inside the form.
+     *
+     * @param WPCF7_FormTag $tag Form tag.
+     * @return string
+     */
+    public function render_form_tag( $tag ) {
+        $list_key = $this->get_tag_list_key( $tag );
+
+        if ( '' === $list_key || ! ListNest_CPT::get_published_list_id( $list_key ) ) {
+            if ( ! current_user_can( 'edit_posts' ) ) {
                 return '';
             }
-
-            $list_key = sanitize_key(wp_unslash($_POST['listnest_cf7_list'])); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-            if ('' === $list_key) {
-                return '';
-            }
-
-            $cf7 = ListNest_Plugin::instance()->get_component('cf7');
-            if (!$cf7) {
-                return '';
-            }
-            $storage = $cf7->get_storage();
-
-            // CF7 submits through the REST API, where WooCommerce does not load its session by default.
-            $storage->load_session();
-            $items = $storage->get_list($list_key);
-            if (empty($items)) {
-                return '';
-            }
-
-            $products_message = "<br><strong>Rodzaj listy: (" . esc_html($list_key) . "):</strong><br>";
-            $products_message .= "<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%; max-width: 500px;'>";
-            $products_message .= "<tr>
-                            <th style='background: #f4f4f4;'>Produkt</th>
-                            <th style='background: #f4f4f4;'>Atrybuty</th>
-                            <th style='background: #f4f4f4;'>Ilość</th>
-                          </tr>";
-
-            foreach ($items as $product) {
-                if (!is_array($product)) {
-                    continue;
-                }
-
-                $product_name      = esc_html('Nieznany produkt');
-                $attributes_output = esc_html('Brak atrybutów');
-
-                if (!empty($product['product_id'])) {
-                    $wc_product = wc_get_product(absint($product['product_id']));
-                    if ($wc_product) {
-                        $product_name = esc_html($wc_product->get_name());
-                    }
-
-                    if (!empty($product['attributes']) && is_array($product['attributes'])) {
-                        $attributes_output = '';
-                        foreach ($product['attributes'] as $attr_k => $attr_v) {
-                            if (!is_scalar($attr_v)) {
-                                continue;
-                            }
-                            $attr_k         = str_replace('attribute_', '', (string) $attr_k);
-                            $attribute_name = wc_attribute_label($attr_k);
-                            $term           = taxonomy_exists($attr_k) ? get_term_by('slug', (string) $attr_v, $attr_k) : false;
-                            $value          = $term ? $term->name : (string) $attr_v;
-                            $attributes_output .= esc_html($attribute_name) . ': ' . esc_html($value) . '<br>';
-                        }
-                    }
-                }
-
-                $quantity = isset($product['quantity']) ? absint($product['quantity']) : 1;
-
-                $products_message .= "<tr>
-                                <td>{$product_name}</td>
-                                <td>{$attributes_output}</td>
-                                <td style='text-align: center;'>" . esc_html($quantity) . "</td>
-                              </tr>";
-            }
-            $products_message .= "</table>";
-
-            return $products_message;
+            return '<span class="listnest listnest-cf7-summary listnest-cf7-summary--error">' . esc_html(
+                sprintf(
+                    /* translators: %s: form tag example */
+                    __( 'ListNest: this form tag needs the key of a published list, e.g. %s.', 'listnest' ),
+                    '[' . self::TAG . ' list:my-list]'
+                )
+            ) . '</span>';
         }
 
+        // The summary is personal (session based): keep the page out of full-page caches.
+        if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+            define( 'DONOTCACHEPAGE', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- Standard caching plugin constant.
+        }
 
-        add_filter('wpcf7_special_mail_tags', 'listnest_cf7_special_mail_tag', 10, 3);
-        function listnest_cf7_special_mail_tag($output, $name, $html)
-        {
-            if ($name === 'listnest_products') {
-                return listnest_cf7_product_list_callback();
+        if ( $this->frontend ) {
+            $this->frontend->enqueue_style();
+        }
+
+        $rows = ListNest_Item::prepare_rows( $this->get_items( $list_key ) );
+
+        // Inline elements only: CF7 wraps form tags in paragraphs.
+        $summary = '<span class="listnest listnest-cf7-summary">';
+        $summary .= '<span class="listnest-cf7-summary__title">' . esc_html( $this->get_list_title( $list_key ) ) . '</span>';
+
+        if ( empty( $rows ) ) {
+            $summary .= '<span class="listnest-cf7-summary__empty">' . esc_html__( 'No products on the list.', 'listnest' ) . '</span>';
+        } else {
+            $summary .= '<span class="listnest-cf7-summary__items" role="list">';
+            foreach ( $rows as $row ) {
+                $summary .= '<span class="listnest-cf7-summary__item" role="listitem">';
+                $summary .= '<span class="listnest-cf7-summary__name">' . esc_html( $row['name'] ) . '</span> ';
+                $summary .= '<span class="listnest-cf7-summary__quantity">' . esc_html(
+                    sprintf(
+                        /* translators: %s: quantity */
+                        __( '× %s', 'listnest' ),
+                        number_format_i18n( $row['quantity'] )
+                    )
+                ) . '</span>';
+                if ( ! empty( $row['attributes'] ) ) {
+                    $summary .= '<span class="listnest-cf7-summary__attributes">' . esc_html( $this->format_attributes_text( $row['attributes'], ', ' ) ) . '</span>';
+                }
+                $summary .= '</span>';
             }
+            $summary .= '</span>';
+        }
+        $summary .= '</span>';
+
+        /**
+         * Filters the read-only list summary shown inside the form.
+         *
+         * @param string $summary  Summary HTML (escaped).
+         * @param string $list_key List key.
+         * @param array  $rows     Rows from ListNest_Item::prepare_rows().
+         */
+        $summary = (string) apply_filters( 'listnest_cf7_form_summary_html', $summary, $list_key, $rows );
+
+        return sprintf(
+            '<span class="wpcf7-form-control-wrap %1$s listnest-cf7" data-name="%1$s"><input type="hidden" name="%1$s" value="%2$s" />%3$s</span>',
+            esc_attr( self::FIELD ),
+            esc_attr( $list_key ),
+            $summary
+        );
+    }
+
+    /**
+     * Validation: fails when the list attached to the form is empty.
+     *
+     * @param WPCF7_Validation $result Validation result.
+     * @param WPCF7_FormTag    $tag    Form tag.
+     * @return WPCF7_Validation
+     */
+    public function validate_form_tag( $result, $tag ) {
+        $list_key = $this->get_tag_list_key( $tag );
+        if ( '' === $list_key ) {
+            $list_key = $this->get_submitted_list_key();
+        }
+
+        /**
+         * Filters whether the form may only be sent with a non-empty list.
+         *
+         * @param bool                   $require      Default true.
+         * @param string                 $list_key     List key.
+         * @param WPCF7_ContactForm|null $contact_form Contact form.
+         */
+        if ( ! apply_filters( 'listnest_cf7_require_items', true, $list_key, $this->get_current_form() ) ) {
+            return $result;
+        }
+
+        if ( '' === $list_key || empty( $this->get_items( $list_key ) ) ) {
+            // The form tag has no name of its own; report the error on the hidden field wrapper.
+            $named       = clone $tag;
+            $named->name = self::FIELD;
+            $result->invalidate( $named, __( 'Your list is empty. Add at least one product before sending the form.', 'listnest' ) );
+        }
+
+        return $result;
+    }
+
+    /* ------------------------------------------------------------------
+     * Mail tag
+     * ------------------------------------------------------------------ */
+
+    /**
+     * Replaces the [listnest_products] mail tag.
+     *
+     * @param string|null $output Output from other handlers.
+     * @param string      $name   Mail tag name.
+     * @param bool        $html   Whether the mail is HTML.
+     * @return string|null
+     */
+    public function render_mail_tag( $output, $name, $html ) {
+        if ( self::TAG !== $name ) {
             return $output;
         }
 
+        $list_key = $this->get_form_list_key( $this->get_current_form() );
+        if ( '' === $list_key ) {
+            return $output;
+        }
 
+        $rows = ListNest_Item::prepare_rows( $this->get_items( $list_key ), true );
+        $mail = $html ? $this->get_mail_html( $list_key, $rows ) : $this->get_mail_text( $list_key, $rows );
+
+        /**
+         * Filters the list inserted into the mail by the [listnest_products] mail tag.
+         *
+         * @param string $mail     Mail output (escaped HTML or plain text).
+         * @param string $list_key List key.
+         * @param array  $rows     Rows from ListNest_Item::prepare_rows() (missing products included).
+         * @param bool   $html     Whether the mail is HTML.
+         */
+        return (string) apply_filters( 'listnest_cf7_mail_output', $mail, $list_key, $rows, (bool) $html );
     }
 
+    /**
+     * HTML table for HTML mails. Inline styles only (mail clients).
+     *
+     * @param string $list_key List key.
+     * @param array  $rows     Rows.
+     * @return string
+     */
+    private function get_mail_html( $list_key, array $rows ) {
+        $title = sprintf(
+            /* translators: %s: list name */
+            __( 'List: %s', 'listnest' ),
+            $this->get_list_title( $list_key )
+        );
+
+        $html = '<p><strong>' . esc_html( $title ) . '</strong></p>';
+
+        if ( empty( $rows ) ) {
+            return $html . '<p>' . esc_html__( 'No products on the list.', 'listnest' ) . '</p>';
+        }
+
+        $th = 'style="background:#f4f4f4;text-align:left;padding:6px;border:1px solid #ddd;"';
+        $td = 'style="padding:6px;border:1px solid #ddd;vertical-align:top;"';
+
+        $html .= '<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;max-width:600px;">';
+        $html .= '<thead><tr>';
+        $html .= '<th ' . $th . '>' . esc_html__( 'Product', 'listnest' ) . '</th>';
+        $html .= '<th ' . $th . '>' . esc_html__( 'Attributes', 'listnest' ) . '</th>';
+        $html .= '<th ' . $th . '>' . esc_html__( 'Quantity', 'listnest' ) . '</th>';
+        $html .= '</tr></thead><tbody>';
+
+        foreach ( $rows as $row ) {
+            $name = '' !== $row['name'] ? $row['name'] : __( 'Unknown product', 'listnest' );
+
+            if ( empty( $row['attributes'] ) ) {
+                $attributes = esc_html__( 'No attributes', 'listnest' );
+            } else {
+                $lines = array();
+                foreach ( $row['attributes'] as $attribute ) {
+                    $lines[] = esc_html( $attribute['label'] ) . ': ' . esc_html( $attribute['value'] );
+                }
+                $attributes = implode( '<br>', $lines );
+            }
+
+            $html .= '<tr>';
+            $html .= '<td ' . $td . '>' . esc_html( $name ) . '</td>';
+            $html .= '<td ' . $td . '>' . $attributes . '</td>';
+            $html .= '<td ' . $td . '>' . esc_html( number_format_i18n( $row['quantity'] ) ) . '</td>';
+            $html .= '</tr>';
+        }
+
+        $html .= '</tbody></table>';
+
+        return $html;
+    }
+
+    /**
+     * Plain-text listing for text mails.
+     *
+     * @param string $list_key List key.
+     * @param array  $rows     Rows.
+     * @return string
+     */
+    private function get_mail_text( $list_key, array $rows ) {
+        $lines   = array();
+        $lines[] = sprintf(
+            /* translators: %s: list name */
+            __( 'List: %s', 'listnest' ),
+            $this->plain_text( $this->get_list_title( $list_key ) )
+        );
+        $lines[] = '';
+
+        if ( empty( $rows ) ) {
+            $lines[] = __( 'No products on the list.', 'listnest' );
+            return implode( "\n", $lines );
+        }
+
+        $number = 0;
+        foreach ( $rows as $row ) {
+            ++$number;
+            $name = '' !== $row['name'] ? $row['name'] : __( 'Unknown product', 'listnest' );
+
+            $attributes = empty( $row['attributes'] )
+                ? __( 'No attributes', 'listnest' )
+                : $this->format_attributes_text( $row['attributes'], '; ' );
+
+            $lines[] = $number . '. ' . __( 'Product', 'listnest' ) . ': ' . $this->plain_text( $name );
+            $lines[] = '   ' . __( 'Attributes', 'listnest' ) . ': ' . $this->plain_text( $attributes );
+            $lines[] = '   ' . __( 'Quantity', 'listnest' ) . ': ' . number_format_i18n( $row['quantity'] );
+            $lines[] = '';
+        }
+
+        return rtrim( implode( "\n", $lines ) );
+    }
+
+    /* ------------------------------------------------------------------
+     * After sending
+     * ------------------------------------------------------------------ */
+
+    /**
+     * Clears the list once the mail has been sent.
+     *
+     * @param WPCF7_ContactForm $contact_form Contact form.
+     */
+    public function clear_after_send( $contact_form ) {
+        $list_key = $this->get_form_list_key( $contact_form );
+        if ( '' === $list_key ) {
+            return;
+        }
+
+        /**
+         * Filters whether the list is cleared after the form has been sent.
+         *
+         * @param bool              $clear        Default true.
+         * @param string            $list_key     List key.
+         * @param WPCF7_ContactForm $contact_form Contact form.
+         */
+        if ( ! apply_filters( 'listnest_cf7_clear_after_send', true, $list_key, $contact_form ) ) {
+            return;
+        }
+
+        $this->storage->load_session();
+        $this->storage->clear_list( $list_key );
+    }
+
+    /* ------------------------------------------------------------------
+     * Helpers
+     * ------------------------------------------------------------------ */
+
+    /**
+     * Items of a list; loads the WooCommerce session first (REST requests).
+     *
+     * @param string $list_key List key.
+     * @return array
+     */
+    private function get_items( $list_key ) {
+        if ( '' === $list_key ) {
+            return array();
+        }
+        $this->storage->load_session();
+        return $this->storage->get_list( $list_key );
+    }
+
+    /**
+     * List key configured on a form tag: list:my-list (or a quoted value).
+     *
+     * @param WPCF7_FormTag $tag Form tag.
+     * @return string
+     */
+    private function get_tag_list_key( $tag ) {
+        if ( ! is_object( $tag ) ) {
+            return '';
+        }
+
+        $key = method_exists( $tag, 'get_option' ) ? $tag->get_option( 'list', '[-0-9a-zA-Z_]+', true ) : false;
+        if ( ! $key && ! empty( $tag->values ) && is_array( $tag->values ) ) {
+            $key = reset( $tag->values );
+        }
+
+        return is_string( $key ) ? sanitize_key( $key ) : '';
+    }
+
+    /**
+     * List key for a submitted form: from the form's [listnest_products]
+     * tag, otherwise from the submitted hidden field.
+     *
+     * @param WPCF7_ContactForm|null $contact_form Contact form.
+     * @return string
+     */
+    private function get_form_list_key( $contact_form ) {
+        if ( is_object( $contact_form ) && method_exists( $contact_form, 'scan_form_tags' ) ) {
+            foreach ( (array) $contact_form->scan_form_tags( array( 'type' => self::TAG ) ) as $tag ) {
+                $list_key = $this->get_tag_list_key( $tag );
+                if ( '' !== $list_key ) {
+                    return $list_key;
+                }
+            }
+        }
+
+        return $this->get_submitted_list_key();
+    }
+
+    /**
+     * List key from the submitted hidden field.
+     *
+     * @return string
+     */
+    private function get_submitted_list_key() {
+        $value = null;
+
+        if ( class_exists( 'WPCF7_Submission' ) ) {
+            $submission = WPCF7_Submission::get_instance();
+            if ( $submission ) {
+                $value = $submission->get_posted_data( self::FIELD );
+            }
+        }
+
+        // CF7 verifies its own submission; this only reads the visitor's own list key.
+        if ( ( null === $value || '' === $value ) && isset( $_POST[ self::FIELD ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            $value = wp_unslash( $_POST[ self::FIELD ] ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized below.
+        }
+
+        if ( is_array( $value ) ) {
+            $value = reset( $value );
+        }
+
+        return is_string( $value ) ? sanitize_key( $value ) : '';
+    }
+
+    /**
+     * Contact form being submitted (or rendered).
+     *
+     * @return WPCF7_ContactForm|null
+     */
+    private function get_current_form() {
+        if ( class_exists( 'WPCF7_Submission' ) ) {
+            $submission = WPCF7_Submission::get_instance();
+            if ( $submission ) {
+                return $submission->get_contact_form();
+            }
+        }
+        if ( class_exists( 'WPCF7_ContactForm' ) ) {
+            return WPCF7_ContactForm::get_current();
+        }
+        return null;
+    }
+
+    /**
+     * List name (list post title), falling back to the key.
+     *
+     * @param string $list_key List key.
+     * @return string Plain text.
+     */
+    private function get_list_title( $list_key ) {
+        $list_id = ListNest_CPT::get_published_list_id( $list_key );
+        $title   = $list_id ? get_the_title( $list_id ) : '';
+        $title   = $this->plain_text( $title );
+        return '' !== $title ? $title : $list_key;
+    }
+
+    /**
+     * "Label: value" pairs joined with a separator (plain text).
+     *
+     * @param array  $attributes List of array( label, value ).
+     * @param string $separator  Separator.
+     * @return string
+     */
+    private function format_attributes_text( array $attributes, $separator ) {
+        $pairs = array();
+        foreach ( $attributes as $attribute ) {
+            $pairs[] = $attribute['label'] . ': ' . $attribute['value'];
+        }
+        return implode( $separator, $pairs );
+    }
+
+    /**
+     * Plain text on a single line (tags and entities removed).
+     *
+     * @param string $text Text.
+     * @return string
+     */
+    private function plain_text( $text ) {
+        $text = wp_strip_all_tags( html_entity_decode( (string) $text, ENT_QUOTES, 'UTF-8' ) );
+        return trim( preg_replace( '/\s+/u', ' ', $text ) );
+    }
 }

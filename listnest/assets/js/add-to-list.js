@@ -309,6 +309,57 @@
     }
 
     /* ------------------------------------------------------------------
+     * Requests
+     * ------------------------------------------------------------------ */
+
+    /**
+     * POSTs form data to admin-ajax.php.
+     * Resolves with { status: HTTP status, result: parsed JSON response }.
+     */
+    function postForm(body) {
+        return fetch(config.ajaxUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+            credentials: 'same-origin',
+            body: body
+        }).then(function (response) {
+            return response.json()
+                .catch(function () {
+                    return { success: false, data: { message: i18n.error } };
+                })
+                .then(function (result) {
+                    return { status: response.status, result: result };
+                });
+        });
+    }
+
+    function isNonceError(result) {
+        return !!(result && result.success === false && result.data && result.data.code === 'invalid_nonce');
+    }
+
+    /**
+     * Fetches a fresh nonce and stores it in the config.
+     * Resolves with true on success, false otherwise.
+     */
+    function refreshNonce() {
+        var body = new URLSearchParams();
+        body.append('action', config.nonceRefreshAction || 'listnest_refresh_nonce');
+
+        return postForm(body)
+            .then(function (res) {
+                var result = res.result;
+                if (result && result.success && result.data && result.data.nonce) {
+                    config.nonce = result.data.nonce;
+                    return true;
+                }
+                return false;
+            })
+            .catch(function () {
+                return false;
+            });
+    }
+
+    /* ------------------------------------------------------------------
      * Click handler
      * ------------------------------------------------------------------ */
 
@@ -347,32 +398,35 @@
 
         var quantity = getQuantity(button);
 
-        var body = new URLSearchParams();
-        body.append('action', config.action || 'listnest_add_to_list');
-        body.append('security', config.nonce);
-        body.append('list_key', listKey);
-        body.append('product_id', String(productId));
-        if (variationId) {
-            body.append('variation_id', String(variationId));
+        function buildBody() {
+            var body = new URLSearchParams();
+            body.append('action', config.action || 'listnest_add_to_list');
+            body.append('security', config.nonce);
+            body.append('list_key', listKey);
+            body.append('product_id', String(productId));
+            if (variationId) {
+                body.append('variation_id', String(variationId));
+            }
+            body.append('quantity', String(quantity));
+            body.append('attributes', JSON.stringify(attributes));
+            return body;
         }
-        body.append('quantity', String(quantity));
-        body.append('attributes', JSON.stringify(attributes));
 
         setLoading(button, true);
         showFeedback(button, i18n.adding || '', '');
 
-        fetch(config.ajaxUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-            credentials: 'same-origin',
-            body: body
-        })
-            .then(function (response) {
-                return response.json().catch(function () {
-                    return { success: false, data: { message: i18n.error } };
-                });
+        postForm(buildBody())
+            .then(function (res) {
+                // Cached pages may carry a stale nonce: refresh it once and retry once.
+                if (res.status === 403 && isNonceError(res.result)) {
+                    return refreshNonce().then(function (refreshed) {
+                        return refreshed ? postForm(buildBody()) : res;
+                    });
+                }
+                return res;
             })
-            .then(function (result) {
+            .then(function (res) {
+                var result = res.result;
                 setLoading(button, false);
 
                 if (!result || !result.success) {

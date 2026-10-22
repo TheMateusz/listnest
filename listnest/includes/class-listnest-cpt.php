@@ -3,6 +3,11 @@ if ( ! defined('ABSPATH') ) {
     exit;
 }
 
+/**
+ * List post type (listnest_list) and its settings metabox.
+ *
+ * The post slug is the list key used by the shortcodes and the CF7 tags.
+ */
 class ListNest_CPT {
 
     /**
@@ -106,24 +111,24 @@ class ListNest_CPT {
             <label>
                 <input type="radio" name="listnest_list_option" value="change_text"
                     <?php checked($selected_option, 'change_text'); ?> />
-                <?php esc_html_e('Change the button to your own text, and when clicked, move to the list', 'listnest'); ?>
+                <?php esc_html_e('Replace the button with a link to a page of your choice (e.g. the list), using your own text', 'listnest'); ?>
             </label><br/>
             <label>
                 <input type="radio" name="listnest_list_option" value="popup"
                     <?php checked($selected_option, 'popup'); ?> />
-                <?php esc_html_e('View popup', 'listnest'); ?>
+                <?php esc_html_e('Show a confirmation popup', 'listnest'); ?>
             </label>
         </p>
 
         <div id="redirect-fields" style="display: none;">
             <hr/>
-            <p><strong><?php esc_html_e('Redirection settings', 'listnest'); ?>:</strong></p>
+            <p><strong><?php esc_html_e('Target page:', 'listnest'); ?></strong></p>
             <p>
                 <?php
                 wp_dropdown_pages(array(
                     'name'             => 'listnest_list_redirect_page',
                     'selected'         => $redirect_page,
-                    'show_option_none' => __('- Choose a side -', 'listnest'),
+                    'show_option_none' => __('— Select a page —', 'listnest'),
                 ));
                 ?>
             </p>
@@ -131,20 +136,20 @@ class ListNest_CPT {
 
         <div id="change-text-fields" style="display: none;">
             <hr/>
-            <p><strong><?php esc_html_e('Settings for changing the button text:', 'listnest'); ?></strong></p>
+            <p><strong><?php esc_html_e('Link button settings:', 'listnest'); ?></strong></p>
             <p>
                 <label for="listnest_list_button_text"><?php esc_html_e('Button text:', 'listnest'); ?></label><br/>
                 <input type="text" name="listnest_list_button_text" id="listnest_list_button_text"
                        placeholder="<?php esc_attr_e('See list', 'listnest'); ?>"
                        value="<?php echo esc_attr($button_text); ?>" style="width: 300px;" />
             </p>
-            <p><strong><?php esc_html_e('Redirection settings', 'listnest'); ?>:</strong></p>
+            <p><strong><?php esc_html_e('Target page:', 'listnest'); ?></strong></p>
             <p>
                 <?php
                 wp_dropdown_pages(array(
                     'name'             => 'listnest_list_button_page',
                     'selected'         => $button_page,
-                    'show_option_none' => __('- Choose a side -', 'listnest'),
+                    'show_option_none' => __('— Select a page —', 'listnest'),
                 ));
                 ?>
             </p>
@@ -159,39 +164,59 @@ class ListNest_CPT {
                 </label><br/>
                 <input type="text" name="listnest_list_popup_title" id="listnest_list_popup_title"
                        value="<?php echo esc_attr($popup_title); ?>"
-                       placeholder="<?php esc_attr_e('Popup title', 'listnest'); ?>"
+                       placeholder="<?php esc_attr_e('Product added to the list', 'listnest'); ?>"
                        style="width: 300px;" />
             </p>
             <p>
                 <label for="listnest_list_popup_btn1_text"><?php esc_html_e('Closing button text:', 'listnest'); ?></label><br/>
                 <input type="text" name="listnest_list_popup_btn1_text" id="listnest_list_popup_btn1_text"
                        value="<?php echo esc_attr($popup_btn1_text); ?>"
-                       placeholder="<?php esc_attr_e('Close', 'listnest'); ?>"
+                       placeholder="<?php esc_attr_e('Continue shopping', 'listnest'); ?>"
                        style="width: 300px;" />
                 <br/>
             </p>
             <p>
-                <label for="listnest_list_popup_btn2_text"><?php esc_html_e('The text of the button to go to the list:', 'listnest'); ?></label><br/>
+                <label for="listnest_list_popup_btn2_text"><?php esc_html_e('"Go to list" button text:', 'listnest'); ?></label><br/>
                 <input type="text" name="listnest_list_popup_btn2_text" id="listnest_list_popup_btn2_text"
                        value="<?php echo esc_attr($popup_btn2_text); ?>"
                           placeholder="<?php esc_attr_e('Go to list', 'listnest'); ?>"
                        style="width: 300px;" />
                 <br/>
             </p>
-            <p><strong><?php esc_html_e('Redirection settings', 'listnest'); ?>:</strong></p>
+            <p><strong><?php esc_html_e('Target page:', 'listnest'); ?></strong></p>
             <p>
                 <?php
                 wp_dropdown_pages(array(
                     'name'             => 'listnest_list_popup_btn2_page',
                     'selected'         => $popup_btn2_page,
-                    'show_option_none' => __('- Choose a side -', 'listnest'),
+                    'show_option_none' => __('— Select a page —', 'listnest'),
                 ));
                 ?>
             </p>
         </div>
 
         <hr/>
-        <p>Jeśli chcesz, żeby tłumaczenie było dynamiczne, zgodne z językiem strony, pozostaw pole puste. Tłumaczenie zostanie pobrane z ustawień językowych WordPressa. Jeśli chcesz możesz je zmienić przy pomocy pluginu Loco Translate.</p>
+        <p class="description"><?php esc_html_e('Leave text fields empty to use the default, translatable text.', 'listnest'); ?></p>
+        <p class="description">
+            <?php
+            $list_key_example = $post->post_name ? $post->post_name : 'list-key';
+            printf(
+                /* translators: %s: shortcode example */
+                esc_html__('To display the list, use the shortcode %s.', 'listnest'),
+                '<code>[listnest list_key="' . esc_html($list_key_example) . '"]</code>'
+            );
+            ?>
+        </p>
+        <p class="description">
+            <?php
+            printf(
+                /* translators: 1: Contact Form 7 form tag, 2: Contact Form 7 mail tag */
+                esc_html__('Contact Form 7: add %1$s to the form and %2$s to the mail body.', 'listnest'),
+                '<code>[listnest_products list:' . esc_html($list_key_example) . ']</code>',
+                '<code>[listnest_products]</code>'
+            );
+            ?>
+        </p>
         <?php
     }
 
