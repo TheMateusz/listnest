@@ -1,4 +1,4 @@
-.lnst-popup {
+.listnest-popup {
     position: fixed;
     top: 0;
     left: 0;
@@ -15,12 +15,12 @@
     overflow: hidden;
 }
 
-.lnst-popup.show {
+.listnest-popup.show {
     visibility: visible;
     opacity: 1;
 }
 
-.lnst-popup-content {
+.listnest-popup-content {
     background: white;
     padding: 60px 20px;
     text-align: center;
@@ -38,18 +38,18 @@
     flex-direction: column;
 }
 
-.lnst-popup-btn{
+.listnest-popup-btn{
     font-size: 14px;
     color: #23c872 !important;
     font-weight: 600;
 }
 
 
-.lnst-popup-btn:hover{
+.listnest-popup-btn:hover{
     text-decoration: underline;
 }
 
-.lnst-popup.show .lnst-popup-content {
+.listnest-popup.show .listnest-popup-content {
     opacity: 1;
     transform: translateY(0);
 }

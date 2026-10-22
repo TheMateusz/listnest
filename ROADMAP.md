@@ -3,12 +3,12 @@
 Plugin code lives in `listnest/`. Tick items (`[x]`) as they land.
 
 ## Stage 1 – Core & prefixes
-- [ ] Main class `ListNest_Plugin` (singleton) bootstraps everything; each hook registered exactly once
-- [ ] Constants: `LISTNEST_VERSION`, `LISTNEST_FILE`, `LISTNEST_PATH`, `LISTNEST_URL`
-- [ ] WooCommerce active check with admin notice
-- [ ] Prefix `lnst_` / `lnst-` → `listnest_` / `listnest-` everywhere (functions, meta, post type, AJAX actions, handles, CSS classes, JS config)
-- [ ] Remove `load_plugin_textdomain()`
-- [ ] HPOS compatibility declaration; `WC requires at least` / `WC tested up to` headers
+- [x] Main class `ListNest_Plugin` (singleton) bootstraps everything; each hook registered exactly once
+- [x] Constants: `LISTNEST_VERSION`, `LISTNEST_FILE`, `LISTNEST_PATH`, `LISTNEST_URL`
+- [x] WooCommerce active check with admin notice
+- [x] Prefix `lnst_` / `lnst-` → `listnest_` / `listnest-` everywhere (functions, meta, post type, AJAX actions, handles, CSS classes, JS config)
+- [x] Remove `load_plugin_textdomain()`
+- [x] HPOS compatibility declaration; `WC requires at least` / `WC tested up to` headers
 
 ## Stage 2 – Security & storage
 - [ ] Replace `session_start()` / `$_SESSION` with `WC()->session`

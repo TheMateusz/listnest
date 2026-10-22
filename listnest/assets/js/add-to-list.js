@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('ListNestConfig nie jest zdefiniowane. Sprawdź wp_localize_script.');
         return;
     }
-    const button = document.querySelector('.lnst-add-button');
+    const button = document.querySelector('.listnest-add-button');
     if (!button) return;
 
     jQuery(document).on('found_variation', 'form.variations_form', function(event, variation) {
@@ -32,36 +32,36 @@ document.addEventListener('DOMContentLoaded', function() {
     button.dataset.originalProductId = button.dataset.productId;
 
     document.addEventListener('click', function(e) {
-        let btn = e.target.closest('.lnst-add-button');
+        let btn = e.target.closest('.listnest-add-button');
         if (!btn) return;
 
         e.preventDefault();
 
         btn.disabled = true;
-        btn.classList.add('lnst-loading');
+        btn.classList.add('listnest-loading');
 
-        const lnstType  = btn.dataset.lnstType;
+        const listnestType  = btn.dataset.listnestType;
         const productId = parseInt(btn.dataset.productId) || 0;
         const productAttrs = btn.dataset.productAttrs ? JSON.parse(btn.dataset.productAttrs) : {};
 
-        if (!lnstType || !productId) {
+        if (!listnestType || !productId) {
             alert('Brak wymaganych danych.');
             resetButton(btn);
             return;
         }
 
-        const listConfig = ListNestConfig.lists[lnstType];
+        const listConfig = ListNestConfig.lists[listnestType];
         if (!listConfig) {
-            console.error(`Nie znaleziono konfiguracji dla: ${lnstType}`, ListNestConfig.lists);
+            console.error(`Nie znaleziono konfiguracji dla: ${listnestType}`, ListNestConfig.lists);
             alert('Błąd konfiguracji listy.');
             resetButton(btn);
             return;
         }
 
         const postData = new URLSearchParams();
-        postData.append('action', 'lnst_add_to_list');
+        postData.append('action', 'listnest_add_to_list');
         postData.append('security', ListNestConfig.nonce);
-        postData.append('list_key', lnstType);
+        postData.append('list_key', listnestType);
         postData.append('product_id', productId);
         postData.append('attributes', JSON.stringify(productAttrs));
 
@@ -91,19 +91,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function resetButton(btn) {
         btn.disabled = false;
-        btn.classList.remove('lnst-loading');
+        btn.classList.remove('listnest-loading');
     }
 
     function showListNestPopup(popupData) {
-        const popup = document.getElementById('lnst-popup-modal');
+        const popup = document.getElementById('listnest-popup-modal');
         if (!popup) {
             console.error('Nie znaleziono szablonu popupu.');
             return;
         }
 
-        document.getElementById('lnst-popup-title').textContent = popupData.title || 'Informacja';
+        document.getElementById('listnest-popup-title').textContent = popupData.title || 'Informacja';
 
-        const btn1 = document.getElementById('lnst-popup-btn1');
+        const btn1 = document.getElementById('listnest-popup-btn1');
         if (popupData.btn1Text) {
             btn1.textContent = popupData.btn1Text;
             btn1.href = popupData.btn1Url || '#';
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
             btn1.style.display = 'none';
         }
 
-        const btn2 = document.getElementById('lnst-popup-btn2');
+        const btn2 = document.getElementById('listnest-popup-btn2');
         if (popupData.btn2Text) {
             btn2.textContent = popupData.btn2Text;
             btn2.href = popupData.btn2Url || '#';
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         popup.classList.add('show');
 
-        document.querySelector('.lnst-popup-close').addEventListener('click', (e) => {
+        document.querySelector('.listnest-popup-close').addEventListener('click', (e) => {
             e.preventDefault();
             popup.classList.remove('show');
         })

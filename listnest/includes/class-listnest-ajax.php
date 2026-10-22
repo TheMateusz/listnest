@@ -5,10 +5,26 @@ if (!defined('ABSPATH')) {
 
 class ListNest_Ajax {
 
-    public function __construct() {
+    /**
+     * Registers hooks. Called once by ListNest_Plugin.
+     */
+    public function register_hooks() {
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
         add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
-        add_action('wp_ajax_lnst_add_to_list', array($this, 'ajax_add_to_list'));
-        add_action('wp_ajax_nopriv_lnst_add_to_list', array($this, 'ajax_add_to_list'));
+        add_action('wp_ajax_listnest_add_to_list', array($this, 'ajax_add_to_list'));
+        add_action('wp_ajax_nopriv_listnest_add_to_list', array($this, 'ajax_add_to_list'));
+    }
+
+    /**
+     * Front-end stylesheet (add-to-list button and list table).
+     */
+    public function enqueue_styles() {
+        wp_enqueue_style(
+            'listnest-style',
+            LISTNEST_URL . 'assets/css/listnest.css',
+            array(),
+            LISTNEST_VERSION
+        );
     }
 
     /**
@@ -16,16 +32,16 @@ class ListNest_Ajax {
      */
     public function enqueue_scripts() {
         $lists_config = $this->get_lists_config();
-        $nonce_action = is_user_logged_in() ? 'lnst_nonce' : 'lnst_nonce_nopriv';
+        $nonce_action = is_user_logged_in() ? 'listnest_nonce' : 'listnest_nonce_nopriv';
 
-        wp_register_script('lnst_add_to_list_js', plugin_dir_url(dirname(__FILE__)) . 'assets/js/add-to-list.js', array(), '1.0', true);
-        wp_localize_script('lnst_add_to_list_js', 'ListNestConfig', array(
+        wp_register_script('listnest_add_to_list_js', LISTNEST_URL . 'assets/js/add-to-list.js', array(), LISTNEST_VERSION, true);
+        wp_localize_script('listnest_add_to_list_js', 'ListNestConfig', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
             'nonce'   => wp_create_nonce($nonce_action),
             'lists'   => $lists_config,
         ));
 
-        wp_enqueue_script('lnst_add_to_list_js');
+        wp_enqueue_script('listnest_add_to_list_js');
     }
 
     /**
@@ -35,7 +51,7 @@ class ListNest_Ajax {
         $lists = array();
 
         $query = new WP_Query(array(
-            'post_type'      => 'lnst_list',
+            'post_type'      => 'listnest_list',
             'posts_per_page' => -1
         ));
 
@@ -44,17 +60,17 @@ class ListNest_Ajax {
                 $query->the_post();
                 $list_key = get_post_field('post_name', get_post());
 
-                $option = get_post_meta(get_the_ID(), '_lnst_list_option', true);
+                $option = get_post_meta(get_the_ID(), '_listnest_list_option', true);
 
-                $redirect_page_id = get_post_meta(get_the_ID(), '_lnst_list_redirect_page', true);
+                $redirect_page_id = get_post_meta(get_the_ID(), '_listnest_list_redirect_page', true);
                 if ($redirect_page_id && function_exists('pll_get_post')) {
                     $redirect_url = pll_get_post($redirect_page_id);
                 } else {
                     $redirect_url = $redirect_page_id;
                 }
 
-                $button_text = get_post_meta(get_the_ID(), '_lnst_list_button_text', true);
-                $button_page = get_post_meta(get_the_ID(), '_lnst_list_button_page', true);
+                $button_text = get_post_meta(get_the_ID(), '_listnest_list_button_text', true);
+                $button_page = get_post_meta(get_the_ID(), '_listnest_list_button_page', true);
 
                 if ($button_page && function_exists('pll_get_post')) {
                     $redirect_button_url = pll_get_post($button_page);
@@ -62,7 +78,7 @@ class ListNest_Ajax {
                     $redirect_button_url = $button_page;
                 }
 
-                $btn2_page = get_post_meta(get_the_ID(), '_lnst_list_popup_btn2_page', true);
+                $btn2_page = get_post_meta(get_the_ID(), '_listnest_list_popup_btn2_page', true);
 
                 if ($btn2_page && function_exists('pll_get_post')) {
                     $redirect_btn2_url = pll_get_post($btn2_page);
@@ -71,9 +87,9 @@ class ListNest_Ajax {
                 }
 
                 $popup = array(
-                    'title'     => get_post_meta(get_the_ID(), '_lnst_list_popup_title', true),
-                    'btn1Text'  => get_post_meta(get_the_ID(), '_lnst_list_popup_btn1_text', true),
-                    'btn2Text'  => get_post_meta(get_the_ID(), '_lnst_list_popup_btn2_text', true),
+                    'title'     => get_post_meta(get_the_ID(), '_listnest_list_popup_title', true),
+                    'btn1Text'  => get_post_meta(get_the_ID(), '_listnest_list_popup_btn1_text', true),
+                    'btn2Text'  => get_post_meta(get_the_ID(), '_listnest_list_popup_btn2_text', true),
                     'btn2Url'   => $btn2_page,
                 );
 
@@ -113,11 +129,11 @@ class ListNest_Ajax {
             session_start();
         }
 
-        if (!isset($_SESSION['lnst_lists'])) {
-            $_SESSION['lnst_lists'] = array();
+        if (!isset($_SESSION['listnest_lists'])) {
+            $_SESSION['listnest_lists'] = array();
         }
-        if (!isset($_SESSION['lnst_lists'][$list_key])) {
-            $_SESSION['lnst_lists'][$list_key] = array();
+        if (!isset($_SESSION['listnest_lists'][$list_key])) {
+            $_SESSION['listnest_lists'][$list_key] = array();
         }
 
         $item_key = $variation_id ? $variation_id : $product_id;
@@ -125,10 +141,10 @@ class ListNest_Ajax {
             $item_key .= ':' . md5(json_encode($attributes));
         }
 
-        if (isset($_SESSION['lnst_lists'][$list_key][$item_key])) {
-            $_SESSION['lnst_lists'][$list_key][$item_key]['quantity'] += $quantity;
+        if (isset($_SESSION['listnest_lists'][$list_key][$item_key])) {
+            $_SESSION['listnest_lists'][$list_key][$item_key]['quantity'] += $quantity;
         } else {
-            $_SESSION['lnst_lists'][$list_key][$item_key] = array(
+            $_SESSION['listnest_lists'][$list_key][$item_key] = array(
                 'product_id'   => $product_id,
                 'variation_id' => $variation_id,
                 'attributes'   => $attributes,
@@ -136,9 +152,8 @@ class ListNest_Ajax {
             );
         }
 
-        wp_send_json_success(array('message' => 'Dodano do listy', 'session' => $_SESSION['lnst_lists'][$list_key]));
+        wp_send_json_success(array('message' => 'Dodano do listy', 'session' => $_SESSION['listnest_lists'][$list_key]));
     }
 
 }
 
-new ListNest_Ajax();

@@ -9,16 +9,16 @@
  */
 ?>
 
-<div class="lnst-list-wrapper">
+<div class="listnest-list-wrapper">
     <?php if (empty($items)) : ?>
         <p class="text-muted"><?php esc_html_e('No products on the list.', 'listnest'); ?></p>
     <?php else : ?>
         <form method="post">
-            <input type="hidden" name="lnst_list_key" value="<?php echo esc_attr($list_key); ?>" />
+            <input type="hidden" name="listnest_list_key" value="<?php echo esc_attr($list_key); ?>" />
 
-            <div class="lnst-list">
+            <div class="listnest-list">
 
-                <div class="col-12 d-flex align-items-center border-bottom border-top py-3 lnst-list-item">
+                <div class="col-12 d-flex align-items-center border-bottom border-top py-3 listnest-list-item">
                     <div class="mx-3 mx-lg-6" style="width: 30px;"></div>
                     <div class="flex-grow-1 fw-semibold">
                         <?php esc_html_e('PRODUCT', 'listnest'); ?>
@@ -39,13 +39,13 @@
                         continue;
                     }
                     ?>
-                    <div class="col-12 d-flex align-items-center border-bottom py-3 lnst-list-item">
-                        <button type="submit" name="lnst_remove_item" value="<?php echo esc_attr($item_key); ?>" class="me-3 lnst-remove-btn mx-3 mx-lg-6">✖</button>
+                    <div class="col-12 d-flex align-items-center border-bottom py-3 listnest-list-item">
+                        <button type="submit" name="listnest_remove_item" value="<?php echo esc_attr($item_key); ?>" class="me-3 listnest-remove-btn mx-3 mx-lg-6">✖</button>
                         <div class="flex-grow-1">
-                            <p class="fw-bold mb-1 lnst-product-name"><?php echo esc_html($product->get_name()); ?></p>
+                            <p class="fw-bold mb-1 listnest-product-name"><?php echo esc_html($product->get_name()); ?></p>
 
                             <?php if ($attributes) : ?>
-                                <div class="lnst-product-attributes">
+                                <div class="listnest-product-attributes">
                                     <?php foreach ($attributes as $attr_k => $attr_v) :
                                         $attribute_name = wc_attribute_label($attr_k);
                                         $term = get_term_by('slug', $attr_v, $attr_k);
@@ -62,7 +62,7 @@
                         <div>
                             <input type="number"
                                    class="form-control text-center"
-                                   name="lnst_items[<?php echo esc_attr($item_key); ?>][quantity]"
+                                   name="listnest_items[<?php echo esc_attr($item_key); ?>][quantity]"
                                    value="<?php echo esc_attr($quantity); ?>"
                                    min="0" style="width: 80px;" />
                         </div>
@@ -71,7 +71,7 @@
             </div>
 
             <div class="d-flex justify-content-end border-bottom py-2 py-lg-4">
-                <button type="submit" class="button button--outline button--mini" name="lnst_update_list" value="1"><?php esc_html_e('Update the list', 'listnest'); ?></button>
+                <button type="submit" class="button button--outline button--mini" name="listnest_update_list" value="1"><?php esc_html_e('Update the list', 'listnest'); ?></button>
             </div>
         </form>
     <?php endif; ?>

@@ -1,26 +1,26 @@
-.lnst-add-button.lnst-loading {
+.listnest-add-button.listnest-loading {
     pointer-events: none;
     opacity: 0.6;
     cursor: wait;
 }
 
-.lnst-add-button.lnst-loading {
+.listnest-add-button.listnest-loading {
     pointer-events: none;
     opacity: 0.6;
     cursor: wait;
 }
 
-.lnst-list-item {
+.listnest-list-item {
     display: flex;
     align-items: center;
 }
 
-.lnst-product-attributes div {
+.listnest-product-attributes div {
     font-size: 0.9rem;
     color: #555;
 }
 
-.lnst-remove-btn {
+.listnest-remove-btn {
     border: 0;
     background-color: #aaabaa;
     width: 30px;

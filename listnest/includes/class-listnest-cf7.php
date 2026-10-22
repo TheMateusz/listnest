@@ -5,26 +5,29 @@ if (!defined('ABSPATH')) {
 
 class ListNest_CF7 {
 
-    public function __construct() {
+    /**
+     * Registers hooks. Called once by ListNest_Plugin (the nested function
+     * declarations below would fatal if this ran twice).
+     */
+    public function register_hooks() {
 
-
-        add_action('wpcf7_init', 'lnst_cf7_add_product_list_tag');
-        function lnst_cf7_add_product_list_tag()
+        add_action('wpcf7_init', 'listnest_cf7_add_product_list_tag');
+        function listnest_cf7_add_product_list_tag()
         {
-            wpcf7_add_form_tag('listnest_products', 'lnst_cf7_product_list_callback', array('name-attr' => true));
+            wpcf7_add_form_tag('listnest_products', 'listnest_cf7_product_list_callback', array('name-attr' => true));
         }
 
-        function lnst_cf7_product_list_callback($tag = null)
+        function listnest_cf7_product_list_callback($tag = null)
         {
-            if (!empty($_POST['lnst_cf7_list'])) {
-                $list_key = sanitize_text_field($_POST['lnst_cf7_list']);
+            if (!empty($_POST['listnest_cf7_list'])) {
+                $list_key = sanitize_text_field($_POST['listnest_cf7_list']);
 
                 if (session_status() === PHP_SESSION_NONE) {
                     session_start();
                 }
 
-                if (!empty($_SESSION['lnst_lists'][$list_key])) {
-                    $items = $_SESSION['lnst_lists'][$list_key];
+                if (!empty($_SESSION['listnest_lists'][$list_key])) {
+                    $items = $_SESSION['listnest_lists'][$list_key];
 
                     $products_message = "<br><strong>Rodzaj listy: (" . esc_html($list_key) . "):</strong><br>";
                     $products_message .= "<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%; max-width: 500px;'>";
@@ -73,11 +76,11 @@ class ListNest_CF7 {
         }
 
 
-        add_filter('wpcf7_special_mail_tags', 'lnst_cf7_special_mail_tag', 10, 3);
-        function lnst_cf7_special_mail_tag($output, $name, $html)
+        add_filter('wpcf7_special_mail_tags', 'listnest_cf7_special_mail_tag', 10, 3);
+        function listnest_cf7_special_mail_tag($output, $name, $html)
         {
             if ($name === 'listnest_products') {
-                return lnst_cf7_product_list_callback();
+                return listnest_cf7_product_list_callback();
             }
             return $output;
         }
