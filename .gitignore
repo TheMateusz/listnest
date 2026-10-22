@@ -1,0 +1,7 @@
+
+# Local dev environment
+.wp-env.override.json
+.test-env/
+test-results/
+node_modules/
+releases/
