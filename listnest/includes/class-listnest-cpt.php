@@ -44,6 +44,11 @@ class ListNest_CPT {
             'menu_position' => 25,
             'menu_icon'     => 'dashicons-list-view',
             'supports'      => array('title'),
+            'map_meta_cap'  => false,
+            'capabilities'  => array_fill_keys(
+                array('edit_post', 'read_post', 'delete_post', 'edit_posts', 'edit_others_posts', 'publish_posts', 'read_private_posts', 'delete_posts', 'delete_private_posts', 'delete_published_posts', 'delete_others_posts', 'edit_private_posts', 'edit_published_posts', 'create_posts'),
+                'manage_woocommerce'
+            ),
         );
         register_post_type('listnest_list', $args);
     }
@@ -131,11 +136,7 @@ class ListNest_CPT {
             <p><strong><?php esc_html_e('Target page:', 'listnest'); ?></strong></p>
             <p>
                 <?php
-                wp_dropdown_pages(array(
-                    'name'             => 'listnest_list_redirect_page',
-                    'selected'         => $redirect_page,
-                    'show_option_none' => __('— Select a page —', 'listnest'),
-                ));
+                $this->render_page_dropdown('listnest_list_redirect_page', $redirect_page);
                 ?>
             </p>
         </div>
@@ -152,11 +153,7 @@ class ListNest_CPT {
             <p><strong><?php esc_html_e('Target page:', 'listnest'); ?></strong></p>
             <p>
                 <?php
-                wp_dropdown_pages(array(
-                    'name'             => 'listnest_list_button_page',
-                    'selected'         => $button_page,
-                    'show_option_none' => __('— Select a page —', 'listnest'),
-                ));
+                $this->render_page_dropdown('listnest_list_button_page', $button_page);
                 ?>
             </p>
         </div>
@@ -192,11 +189,7 @@ class ListNest_CPT {
             <p><strong><?php esc_html_e('Target page:', 'listnest'); ?></strong></p>
             <p>
                 <?php
-                wp_dropdown_pages(array(
-                    'name'             => 'listnest_list_popup_btn2_page',
-                    'selected'         => $popup_btn2_page,
-                    'show_option_none' => __('— Select a page —', 'listnest'),
-                ));
+                $this->render_page_dropdown('listnest_list_popup_btn2_page', $popup_btn2_page);
                 ?>
             </p>
         </div>
@@ -298,6 +291,11 @@ class ListNest_CPT {
     }
 
     public function save_list_meta_box($post_id, $post) {
+        foreach ($_POST as $field => $value) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified immediately below; reject malformed fields first.
+            if (0 === strpos((string) $field, 'listnest_') && ! is_string($value)) {
+                return;
+            }
+        }
         if (
             ! isset($_POST['listnest_list_meta_box_nonce']) ||
             ! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['listnest_list_meta_box_nonce'])), 'listnest_list_meta_box')
@@ -323,14 +321,14 @@ class ListNest_CPT {
             $option = '';
         }
 
-        $redirect_page = isset($_POST['listnest_list_redirect_page']) ? $this->sanitize_page_id((int) wp_unslash($_POST['listnest_list_redirect_page'])) : 0;
+        $redirect_page = isset($_POST['listnest_list_redirect_page']) ? $this->sanitize_page_id(intval(wp_unslash($_POST['listnest_list_redirect_page']))) : 0;
         $button_text   = isset($_POST['listnest_list_button_text']) ? sanitize_text_field(wp_unslash($_POST['listnest_list_button_text'])) : '';
-        $button_page   = isset($_POST['listnest_list_button_page']) ? $this->sanitize_page_id((int) wp_unslash($_POST['listnest_list_button_page'])) : 0;
+        $button_page   = isset($_POST['listnest_list_button_page']) ? $this->sanitize_page_id(intval(wp_unslash($_POST['listnest_list_button_page']))) : 0;
 
         $popup_title     = isset($_POST['listnest_list_popup_title']) ? sanitize_text_field(wp_unslash($_POST['listnest_list_popup_title'])) : '';
         $popup_btn1_text = isset($_POST['listnest_list_popup_btn1_text']) ? sanitize_text_field(wp_unslash($_POST['listnest_list_popup_btn1_text'])) : '';
         $popup_btn2_text = isset($_POST['listnest_list_popup_btn2_text']) ? sanitize_text_field(wp_unslash($_POST['listnest_list_popup_btn2_text'])) : '';
-        $popup_btn2_page = isset($_POST['listnest_list_popup_btn2_page']) ? $this->sanitize_page_id((int) wp_unslash($_POST['listnest_list_popup_btn2_page'])) : 0;
+        $popup_btn2_page = isset($_POST['listnest_list_popup_btn2_page']) ? $this->sanitize_page_id(intval(wp_unslash($_POST['listnest_list_popup_btn2_page']))) : 0;
 
         $auto_button  = (isset($_POST['listnest_list_auto_button']) && '1' === sanitize_key(wp_unslash($_POST['listnest_list_auto_button']))) ? '1' : '0';
         $button_label = isset($_POST['listnest_list_add_button_label']) ? sanitize_text_field(wp_unslash($_POST['listnest_list_add_button_label'])) : '';
@@ -374,6 +372,27 @@ class ListNest_CPT {
     }
 
     /**
+     * Page dropdown (wp_dropdown_pages) with a "none" option.
+     *
+     * @param string $name     Field name.
+     * @param mixed  $selected Selected page ID.
+     */
+    private function render_page_dropdown($name, $selected) {
+        $selected = absint($selected);
+        $pages    = get_pages(array('sort_column' => 'menu_order, post_title'));
+        ?>
+        <select name="<?php echo esc_attr($name); ?>" id="<?php echo esc_attr($name); ?>">
+            <option value="0"><?php esc_html_e('- Select a page -', 'listnest'); ?></option>
+            <?php foreach ((array) $pages as $page) : ?>
+                <option value="<?php echo esc_attr($page->ID); ?>" <?php selected($selected, $page->ID); ?>>
+                    <?php echo esc_html(str_repeat('- ', count(get_post_ancestors($page))) . ($page->post_title !== '' ? $page->post_title : '#' . $page->ID)); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <?php
+    }
+
+    /**
      * Page ID from a wp_dropdown_pages() field; "none" (-1) and invalid values become 0.
      *
      * @param int $page_id Raw page ID.
@@ -407,7 +426,6 @@ class ListNest_CPT {
                 'numberposts'      => 1,
                 'fields'           => 'ids',
                 'no_found_rows'    => true,
-                'suppress_filters' => true,
             ));
             $cache[$list_key] = ! empty($ids) ? (int) $ids[0] : 0;
         }
